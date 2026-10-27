@@ -506,7 +506,7 @@ P.push(mk({
   wrong: [
     [R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}}{2^{n}}(x-2)^{n}$`, R`Off by one power of $2$: $\frac1x=\frac12\cdot\frac{1}{1+u/2}$ keeps a leading $\frac12$, so the denominator is $2^{n+1}$. Check $f(2)=\frac12$.`, 'off-by-one'],
     [R`$\displaystyle\sum_{n=0}^{\infty}\frac{1}{2^{n+1}}(x-2)^{n}$`, R`Signs alternate since $f'(2)=-\frac14$.`, 'sign'],
-    [R`$\displaystyle\sum_{n=0}^{\infty}(-1)^{n}(x-2)^{n}$`, R`That is the centre-$1$ series for $\frac1x$. Check $f(2)=\frac12$.`, 'setup'],
+    [R`$\displaystyle\sum_{n=0}^{\infty}(-1)^{n}(x-2)^{n}$`, R`That drops the $\frac{1}{2^{n+1}}$ scaling (centre-$1$ coefficients with the centre-$2$ powers). Check $f(2)=\frac12$.`, 'setup'],
     [R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}}{2^{n+1}}x^{n}$`, R`Powers must be $(x-2)^n$.`, 'setup'],
   ],
   keyWhy: R`$\frac1x=\frac{1}{2+(x-2)}=\frac{1/2}{1+\frac{x-2}{2}}=\frac12\sum\left(-\frac{x-2}{2}\right)^{n}$.`,
@@ -538,7 +538,7 @@ P.push(mk({
   wrong: [
     [R`$\dfrac{8}{3}$`, R`You used $3!$. For $T_3$ the remainder involves $f^{(4)}$ and $(3+1)!=4!=24$.`, 'off-by-one'],
     [R`$\dfrac{1}{24}$`, R`You dropped $|x|^{4}$. On $|x|\le2$ it is as large as $2^{4}=16$.`, 'dropped-factor'],
-    [R`$\dfrac{2}{15}$`, R`$5!$ is one factorial too far; the remainder after $T_3$ uses $(n+1)!=4!$.`, 'off-by-one'],
+    [R`$\dfrac{4}{15}$`, R`$\frac{2^5}{5!}$ is one factorial too far; the remainder after $T_3$ uses $(n+1)!=4!$.`, 'off-by-one'],
     [R`$0$`, R`$T_3$ is not exact on an interval; the error vanishes only at the centre.`, 'conceptual'],
   ],
   keyWhy: R`$|R_3|\le\frac{M|x|^{4}}{4!}$ with $M=1$ (since $|f^{(4)}|=|\sin|\le1$) and $|x|^4\le16$: $\frac{16}{24}=\frac23$.`,
@@ -699,7 +699,7 @@ G.push({
     return {
       prompt: `Use $T_n(x)$ for $${fn}$ about $0$ to approximate $${fn}$ on $|x|\\le1$. What is the smallest $n$ for which the Taylor Remainder Theorem guarantees error less than $\\frac{1}{${tol}}$?`,
       choices: [{ t: key, ok: true }, ...choose(key, [
-        { t: `$n=${k}$`, why: `Works but is not smallest: you used $n!$ instead of $(n+1)!$. With $n=${n}$ the bound is $\\frac1{${k}!}$.`, err: 'off-by-one' },
+        { t: `$n=${k}$`, why: `Valid but larger than needed: $n=${n}$ already gives bound $\\frac1{${k}!}<\\frac1{${tol}}$.`, err: 'off-by-one' },
         { t: `$n=${k - 2}$`, why: `Bound is $\\frac1{${k - 1}!}=\\frac1{${[1, 1, 2, 6, 24, 120, 720][k - 1]}}$, which is not less than $\\frac1{${tol}}$.`, err: 'off-by-one' },
         { t: `$n=${k + 2}$`, why: 'Large enough, but not the smallest.', err: 'conceptual' },
       ])],

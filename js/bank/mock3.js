@@ -58,7 +58,7 @@ add('a', 4, {
   wrong: [
     [R`$\displaystyle\sum_{n=0}^{\infty}\frac{x^{3n+2}}{n!}$`, R`Substituting $-x^3$ gives $(-1)^n$.`, 'sign'],
     [R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{3n}}{n!}$`, R`You dropped the outside factor $x^2$.`, 'dropped-factor'],
-    [R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{n+5}}{n!}$`, R`$(x^3)^n=x^{3n}$, not $x^{n+3}$.`, 'algebra-slip'],
+    [R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{n+5}}{n!}$`, R`Powers multiply: $(x^3)^n=x^{3n}$, so the exponent is $3n+2$, not $n+5$.`, 'algebra-slip'],
   ],
   keyWhy: R`$e^{u}=\sum\frac{u^n}{n!}$ with $u=-x^3$ times $x^2$.`,
   hints: [R`Replace $u$ by $-x^3$, then multiply by $x^2$.`],

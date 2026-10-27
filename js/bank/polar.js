@@ -769,7 +769,7 @@ G.push({
   make(r) {
     const k = r.int(1, 4);
     const horiz = r.pick([true, false]);
-    const key = `$t=\\pm${cf(k)}$`;
+    const key = `$t=\\pm${k}$`;
     const body = horiz ? `x=t^{2},\\ y=t^{3}-${3 * k * k}t` : `x=t^{3}-${3 * k * k}t,\\ y=t^{2}`;
     const zero = horiz
       ? { t: '$t=0$', why: 'There $\\frac{dx}{dt}=2t=0$ while $\\frac{dy}{dt}=' + (-3 * k * k) + '\\ne0$ — a **vertical** tangent.', err: 'horiz-vert' }
@@ -780,7 +780,7 @@ G.push({
         { t: key, ok: true },
         ...choose(key, [
           zero,
-          { t: `$t=0,\\ \\pm${cf(k)}$`, why: 'Exactly one of the derivatives vanishes at each good point. At $t=0$ the other one vanishes instead, so $t=0$ does not belong.' },
+          { t: `$t=0,\\ \\pm${k}$`, why: 'Exactly one of the derivatives vanishes at each good point. At $t=0$ the other one vanishes instead, so $t=0$ does not belong.' },
           { t: `$t=\\pm${3 * k}$`, why: `Solve $3t^{2}=${3 * k * k}$ properly: $t^{2}=${k * k}$, so $t=\\pm${k}$.` },
           { t: `$t=\\pm${cf(k)}\\sqrt3$`, why: `Divide $3t^{2}-${3 * k * k}=0$ through by $3$ first: $t^{2}=${k * k}$.` },
         ]),
