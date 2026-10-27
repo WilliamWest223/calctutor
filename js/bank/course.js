@@ -76,26 +76,37 @@ export const SCHEDULE = [
   { d: '2026-10-27', t: 'Exam 2 (1:15 PM, LeConte 444)', kind: 'exam', exam: 2 },
   { d: '2026-10-28', t: 'Recitation', kind: 'rec' },
   { d: '2026-10-29', t: 'Taylor Series', skills: ['series/Taylor & Maclaurin Series'] },
+  { d: '2026-10-30', t: 'Study: Maclaurin table cold (6 rows + IOC), Power Series drill', skills: ['series/Power Series & Radius', 'series/Taylor & Maclaurin Series'], kind: 'study' },
   { d: '2026-11-02', t: 'Lab 7 · Lab 6 due', kind: 'lab' },
   { d: '2026-11-03', t: 'Election Day — no class', kind: 'off' },
   { d: '2026-11-04', t: 'Labs 8 & 9', kind: 'lab' },
   { d: '2026-11-05', t: 'Taylor Series', skills: ['series/Taylor & Maclaurin Series'] },
+  { d: '2026-11-06', t: 'Study: Taylor from scratch at non-zero centre x4, Mock Exam 3 A untimed', skills: ['series/Taylor & Maclaurin Series'], kind: 'study' },
   { d: '2026-11-09', t: 'Recitation · Lab 7 due', kind: 'rec' },
   { d: '2026-11-10', t: 'Taylor Remainder Theorem', skills: ['series/Taylor Polynomials & Error'] },
   { d: '2026-11-11', t: 'Recitation · Labs 8 & 9 due', kind: 'rec' },
   { d: '2026-11-12', t: 'Series Applications', skills: ['series/Applications of Series'] },
   { d: '2026-11-13', t: 'HW due: Taylor & Maclaurin Series', kind: 'due' },
+  { d: '2026-11-14', t: 'Study: remainder bounds + series apps drill, Cheatsheet Exam 3 section', skills: ['series/Taylor Polynomials & Error', 'series/Applications of Series'], kind: 'study' },
   { d: '2026-11-15', t: 'HW due: Taylor Remainder Theorem', kind: 'due' },
   { d: '2026-11-16', t: 'Recitation', kind: 'rec' },
+  { d: '2026-11-16', t: 'Study: Mock Exam 3 B timed (50 min), redo every miss', skills: ['series/Power Series & Radius', 'series/Taylor & Maclaurin Series', 'series/Taylor Polynomials & Error', 'series/Applications of Series'], kind: 'study' },
   { d: '2026-11-17', t: 'Exam Review · HW due: Mathematical Applications of Series', kind: 'rec' },
   { d: '2026-11-18', t: 'Recitation', kind: 'rec' },
+  { d: '2026-11-18', t: 'Study: Mistake Bank + Exam 3 Exam Practice, sleep', skills: ['series/Taylor & Maclaurin Series', 'series/Taylor Polynomials & Error', 'series/Applications of Series'], kind: 'study' },
   { d: '2026-11-19', t: 'Exam 3 (1:15 PM, LeConte 444)', kind: 'exam', exam: 3 },
+  { d: '2026-11-22', t: 'Study: techniques refresh (parts, trig sub, partial fractions, improper)', skills: ['techniques/Strategy for Integration', 'techniques/Improper Integrals'], kind: 'study' },
   { d: '2026-11-23', t: 'Thanksgiving Break — no class', kind: 'off' },
+  { d: '2026-11-28', t: 'Study: convergence tests refresh (Choosing a Test drill)', skills: ['series/Choosing a Test', 'series/Limit Comparison'], kind: 'study' },
   { d: '2026-11-30', t: 'Recitation', kind: 'rec' },
   { d: '2026-12-01', t: 'Polar Coordinates', skills: ['polar/Polar Coordinates', 'polar/Polar Area & Arc Length'] },
   { d: '2026-12-02', t: 'Recitation', kind: 'rec' },
+  { d: '2026-12-02', t: 'Study: polar area + slope drill after lecture', skills: ['polar/Polar Coordinates', 'polar/Polar Area & Arc Length'], kind: 'study' },
   { d: '2026-12-03', t: 'Parametric Functions', skills: ['polar/Parametric Curves', 'polar/Parametric Calculus'] },
   { d: '2026-12-04', t: 'Last day of classes · HW due: Parametric Functions & Polar Coordinates', kind: 'due' },
+  { d: '2026-12-05', t: 'Study: Mock Final A untimed, parametric drill', skills: ['polar/Parametric Curves', 'polar/Parametric Calculus'], kind: 'study' },
+  { d: '2026-12-07', t: 'Study: Mock Final B timed (2 h, no calculator), redo misses', skills: ['polar/Parametric Calculus', 'series/Taylor Polynomials & Error'], kind: 'study' },
+  { d: '2026-12-09', t: 'Study: Final cheatsheet sections + Mistake Bank + Cram Session', skills: ['techniques/Strategy for Integration', 'series/Choosing a Test'], kind: 'study' },
   { d: '2026-12-10', t: 'Final Exam (12:30 PM, LeConte 444)', kind: 'exam', exam: 0 },
 ];
 
@@ -196,7 +207,7 @@ const dkey = d => d.toISOString().slice(0, 10);
 /** Where the course is right now. */
 export function courseToday(now = new Date()) {
   const today = dkey(now);
-  const classes = SCHEDULE.filter(s => s.kind !== 'due');
+  const classes = SCHEDULE.filter(s => s.kind !== 'due' && s.kind !== 'study');
   const past = classes.filter(s => s.d <= today);
   const future = classes.filter(s => s.d > today);
   return {

@@ -437,4 +437,464 @@ G.push({
   },
 });
 
+// ---- deepening: Taylor from scratch, T_n, Lagrange, alternating error, series apps ----
+const R = String.raw;
+/** Compact static builder: wrong = [[tex, why, err], ...]. Exported for mock3.js. */
+export function mk(o) {
+  const P2 = {
+    unit: 'series', topic: o.topic, diff: o.diff, src: o.src, prompt: o.prompt,
+    choices: [{ t: o.key, ok: true }, ...o.wrong.map(([t, why, err]) => ({ t, why, err }))],
+    keyWhy: o.keyWhy, hints: o.hints, steps: o.steps, recall: o.recall,
+  };
+  if (o.fix) P2.fix = o.fix;
+  return { id: o.id, ...P2 };
+}
+const TM = 'Taylor & Maclaurin Series', TP = 'Taylor Polynomials & Error', AP = 'Applications of Series';
+
+P.push(mk({
+  id: 't-tay-ln-c1', topic: TM, diff: 4, src: 'Exam 3 Q2 style — from scratch, centre 1',
+  prompt: R`Derive the Taylor series for $f(x)=\ln x$ centred at $x=1$ from the definition.`,
+  key: R`$\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^{n+1}}{n}(x-1)^{n}$`,
+  wrong: [
+    [R`$\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^{n+1}}{n!}(x-1)^{n}$`, R`$f^{(n)}(1)=(-1)^{n+1}(n-1)!$, so dividing by $n!$ leaves $\frac1n$, not $\frac1{n!}$. The factorial cancels down to a single $n$.`, 'formula-confusion'],
+    [R`$\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^{n+1}}{n}x^{n}$`, R`That is the Maclaurin series of $\ln(1+x)$. Here the centre is $1$, so every power must be $(x-1)^{n}$.`, 'setup'],
+    [R`$\displaystyle\sum_{n=1}^{\infty}\frac{1}{n}(x-1)^{n}$`, R`The signs alternate: $f'(1)=1,\ f''(1)=-1,\ f'''(1)=2,\dots$ Compute a few derivatives as numbers and watch the sign.`, 'sign'],
+    [R`$\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^{n+1}}{n}(x+1)^{n}$`, R`Powers are $(x-c)^n$ with $c=1$, so $(x-1)^n$. $(x+1)$ would mean centre $-1$.`, 'sign'],
+  ],
+  keyWhy: R`$f(1)=0$ and $f^{(n)}(x)=(-1)^{n+1}(n-1)!\,x^{-n}$, so $f^{(n)}(1)/n!=(-1)^{n+1}/n$.`,
+  hints: [R`Differentiate $\ln x$ four times and evaluate each at $x=1$.`, R`You get $0,\ 1,\ -1,\ 2,\ -6$: the $n$th is $\pm(n-1)!$.`],
+  steps: [R`$f=\ln x,\ f'=x^{-1},\ f''=-x^{-2},\ f'''=2x^{-3},\ f^{(4)}=-6x^{-4}$.`, R`At $x=1$: $0,\ 1,\ -1,\ 2,\ -6$, i.e. $f^{(n)}(1)=(-1)^{n+1}(n-1)!$ for $n\ge1$.`, R`Divide by $n!$: $\frac{(-1)^{n+1}(n-1)!}{n!}=\frac{(-1)^{n+1}}{n}$.`, R`$\ln x=\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^{n+1}}{n}(x-1)^{n}$ (the $n=0$ term is $f(1)=0$).`],
+  recall: R`$\ln x$ about $1$ is just $\ln(1+u)$ with $u=x-1$. The constant term is $0$, so the sum starts at $n=1$.`,
+}));
+
+P.push(mk({
+  id: 't-tay-exp-c2', topic: TM, diff: 3, src: 'Exam 3 Q2 style — e^x at a nonzero centre',
+  prompt: R`Find the Taylor series for $f(x)=e^{x}$ centred at $x=2$.`,
+  key: R`$\displaystyle\sum_{n=0}^{\infty}\frac{e^{2}}{n!}(x-2)^{n}$`,
+  wrong: [
+    [R`$\displaystyle\sum_{n=0}^{\infty}\frac{1}{n!}(x-2)^{n}$`, R`You used $f^{(n)}(0)=1$. The coefficients are $f^{(n)}(2)/n!$ and every derivative of $e^x$ at $2$ is $e^{2}$, not $1$.`, 'setup'],
+    [R`$\displaystyle\sum_{n=0}^{\infty}\frac{e^{2}}{n!}x^{n}$`, R`The powers must be $(x-2)^n$ for centre $2$.`, 'setup'],
+    [R`$\displaystyle\sum_{n=0}^{\infty}e^{2}(x-2)^{n}$`, R`The $n!$ was dropped. Taylor coefficients are $\frac{f^{(n)}(c)}{n!}$.`, 'dropped-factor'],
+    [R`$\displaystyle\sum_{n=0}^{\infty}\frac{e^{2}}{n!}(x+2)^{n}$`, R`$(x+2)$ means centre $-2$. Use $(x-c)=(x-2)$.`, 'sign'],
+  ],
+  keyWhy: R`Every derivative of $e^{x}$ is $e^{x}$, so $f^{(n)}(2)=e^{2}$ for all $n$.`,
+  hints: [R`What is $f^{(n)}(x)$ for $e^x$? Then plug in $x=2$.`],
+  steps: [R`$f^{(n)}(x)=e^{x}$ for every $n$, so $f^{(n)}(2)=e^{2}$.`, R`Coefficient: $\frac{f^{(n)}(2)}{n!}=\frac{e^{2}}{n!}$.`, R`Series: $\displaystyle\sum_{n=0}^{\infty}\frac{e^{2}}{n!}(x-2)^{n}$.`],
+  recall: R`Off-centre $e^x$: coefficient is $e^{c}/n!$, power is $(x-c)^n$. Shortcut: $e^{x}=e^{2}e^{x-2}$.`,
+}));
+
+P.push(mk({
+  id: 't-tay-sin-pi2', topic: TM, diff: 4, src: 'Exam 3 Q2 style — sin x at pi/2',
+  prompt: R`Find the Taylor series for $f(x)=\sin x$ centred at $x=\dfrac{\pi}{2}$.`,
+  key: R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}}{(2n)!}\left(x-\frac{\pi}{2}\right)^{2n}$`,
+  wrong: [
+    [R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}}{(2n+1)!}\left(x-\frac{\pi}{2}\right)^{2n+1}$`, R`That is $\sin x$ about $0$ with $x$ shifted. At $\frac\pi2$, $\sin=1$ is the constant term and the odd derivatives ($\cos$) vanish, so only **even** powers survive.`, 'formula-confusion'],
+    [R`$\displaystyle\sum_{n=0}^{\infty}\frac{1}{(2n)!}\left(x-\frac{\pi}{2}\right)^{2n}$`, R`Signs alternate: $f''=-\sin\to-1$, $f^{(4)}=\sin\to+1$.`, 'sign'],
+    [R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}}{(2n)!}\left(x+\frac{\pi}{2}\right)^{2n}$`, R`Centre is $+\frac\pi2$, so the base is $x-\frac\pi2$.`, 'sign'],
+    [R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}}{(2n)!}x^{2n}$`, R`That is $\cos x$ about $0$ -- the same shape, but the problem asks about the centre $\frac\pi2$.`, 'setup'],
+  ],
+  keyWhy: R`$\sin x=\cos\!\left(x-\frac\pi2\right)$, and the cosine series in $u=x-\frac\pi2$ is $\sum(-1)^n u^{2n}/(2n)!$.`,
+  hints: [R`Evaluate $\sin,\cos,-\sin,-\cos$ at $\frac\pi2$: $1,0,-1,0,1,\dots$`],
+  steps: [R`$f(\tfrac\pi2)=1,\ f'(\tfrac\pi2)=0,\ f''(\tfrac\pi2)=-1,\ f'''(\tfrac\pi2)=0,\ f^{(4)}(\tfrac\pi2)=1$.`, R`Only even $n=2k$ survive, with sign $(-1)^k$, giving $\frac{(-1)^k}{(2k)!}(x-\frac\pi2)^{2k}$.`],
+  recall: R`Cycle of derivatives at the centre decides which powers survive. Check with $\sin x=\cos(x-\frac\pi2)$.`,
+}));
+
+P.push(mk({
+  id: 't-tay-inv-c2', topic: TM, diff: 4, src: 'Exam 3 Q2 style — geometric trick off-centre',
+  prompt: R`Find the Taylor series for $f(x)=\dfrac1x$ centred at $x=2$.`,
+  key: R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}}{2^{n+1}}(x-2)^{n}$`,
+  wrong: [
+    [R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}}{2^{n}}(x-2)^{n}$`, R`Off by one power of $2$: $\frac1x=\frac12\cdot\frac{1}{1+u/2}$ keeps a leading $\frac12$, so the denominator is $2^{n+1}$. Check $f(2)=\frac12$.`, 'off-by-one'],
+    [R`$\displaystyle\sum_{n=0}^{\infty}\frac{1}{2^{n+1}}(x-2)^{n}$`, R`Signs alternate since $f'(2)=-\frac14$.`, 'sign'],
+    [R`$\displaystyle\sum_{n=0}^{\infty}(-1)^{n}(x-2)^{n}$`, R`That is the centre-$1$ series for $\frac1x$. Check $f(2)=\frac12$.`, 'setup'],
+    [R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}}{2^{n+1}}x^{n}$`, R`Powers must be $(x-2)^n$.`, 'setup'],
+  ],
+  keyWhy: R`$\frac1x=\frac{1}{2+(x-2)}=\frac{1/2}{1+\frac{x-2}{2}}=\frac12\sum\left(-\frac{x-2}{2}\right)^{n}$.`,
+  hints: [R`Write $x=2+(x-2)$, factor out the $2$, and aim for $\frac{1}{1-r}$.`],
+  steps: [R`$\frac1x=\frac{1}{2+(x-2)}=\frac12\cdot\frac{1}{1+\frac{x-2}{2}}$.`, R`With $r=-\frac{x-2}{2}$: $\frac12\sum_{n\ge0}\left(-\frac{x-2}{2}\right)^{n}=\sum\frac{(-1)^{n}(x-2)^{n}}{2^{n+1}}$.`, R`Check: $f(2)=\frac12$, $f'(2)=-\frac14$ matches $n=0,1$.`],
+  recall: R`Off-centre geometric: factor so the denominator is $c\,[1-(\text{stuff})]$ with stuff $\propto(x-c)$. Always sanity-check $f(c)$.`,
+}));
+
+P.push(mk({
+  id: 't-poly-sqrt4', topic: TP, diff: 3, src: 'Exam 3 Q7 style — T_2 at a nonzero centre',
+  prompt: R`Find the degree-2 Taylor polynomial $T_2(x)$ for $f(x)=\sqrt{x}$ centred at $x=4$.`,
+  key: R`$2+\dfrac{x-4}{4}-\dfrac{(x-4)^{2}}{64}$`,
+  wrong: [
+    [R`$2+\dfrac{x-4}{4}-\dfrac{(x-4)^{2}}{32}$`, R`$f''(4)=-\frac1{32}$ but the term needs $\frac{f''(4)}{2!}=-\frac1{64}$. You forgot to divide by $2!$.`, 'dropped-factor'],
+    [R`$2+\dfrac{x-4}{4}+\dfrac{(x-4)^{2}}{64}$`, R`$f''(x)=-\frac14x^{-3/2}<0$, so the quadratic coefficient is negative.`, 'sign'],
+    [R`$2+\dfrac{x-4}{2}-\dfrac{(x-4)^{2}}{16}$`, R`$f'(x)=\frac{1}{2\sqrt x}$ and $f'(4)=\frac14$, not $\frac12$.`, 'algebra-slip'],
+    [R`$2+\dfrac{x}{4}-\dfrac{x^{2}}{64}$`, R`Powers must be $(x-4)$, not $x$.`, 'setup'],
+  ],
+  keyWhy: R`$f(4)=2,\ f'(4)=\frac14,\ f''(4)=-\frac1{32}$; divide the last by $2!$.`,
+  hints: [R`$f'=\frac12x^{-1/2},\ f''=-\frac14x^{-3/2}$.`],
+  steps: [R`$f(4)=2$.`, R`$f'(x)=\tfrac12x^{-1/2}\Rightarrow f'(4)=\tfrac14$.`, R`$f''(x)=-\tfrac14x^{-3/2}\Rightarrow f''(4)=-\tfrac1{32}$.`, R`$T_2=2+\frac14(x-4)+\frac{-1/32}{2!}(x-4)^{2}$.`],
+  recall: R`$T_n=\sum_{k\le n}\frac{f^{(k)}(c)}{k!}(x-c)^k$. Write each derivative as a number before dividing by $k!$.`,
+}));
+
+P.push(mk({
+  id: 't-lagr-sin-t3', topic: TP, diff: 4, src: 'Exam 3 Q7 style — Taylor Remainder Theorem bound',
+  prompt: R`Use $T_3(x)$ for $\sin x$ about $0$ to approximate $\sin x$ on $|x|\le 2$. What is the best bound from the Taylor Remainder Theorem on the error?`,
+  key: R`$\dfrac{2}{3}$`,
+  wrong: [
+    [R`$\dfrac{8}{3}$`, R`You used $3!$. For $T_3$ the remainder involves $f^{(4)}$ and $(3+1)!=4!=24$.`, 'off-by-one'],
+    [R`$\dfrac{1}{24}$`, R`You dropped $|x|^{4}$. On $|x|\le2$ it is as large as $2^{4}=16$.`, 'dropped-factor'],
+    [R`$\dfrac{2}{15}$`, R`$5!$ is one factorial too far; the remainder after $T_3$ uses $(n+1)!=4!$.`, 'off-by-one'],
+    [R`$0$`, R`$T_3$ is not exact on an interval; the error vanishes only at the centre.`, 'conceptual'],
+  ],
+  keyWhy: R`$|R_3|\le\frac{M|x|^{4}}{4!}$ with $M=1$ (since $|f^{(4)}|=|\sin|\le1$) and $|x|^4\le16$: $\frac{16}{24}=\frac23$.`,
+  hints: [R`$f^{(4)}(x)=\sin x$. Bound it by $M$, then bound $|x|^{4}$.`],
+  steps: [R`$|R_3(x)|\le\frac{M}{4!}|x|^{4}$ where $M\ge|f^{(4)}|=|\sin z|$, so $M=1$.`, R`On $|x|\le2$: $|x|^4\le16$.`, R`Bound $=\frac{16}{24}=\frac23$.`],
+  recall: R`Degree $n$ means derivative $n+1$ and $(n+1)!$. Bound the derivative and the power separately.`,
+}));
+
+P.push(mk({
+  id: 't-alt-nterms', topic: 'Alternating Series & Error', diff: 3, src: 'Exam 3 style — alternating series error',
+  prompt: R`Approximate $\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^{n+1}}{n^{2}}$ by a partial sum $S_N$. What is the smallest $N$ guaranteeing error less than $\frac{1}{1000}$?`,
+  key: R`$N=31$`,
+  wrong: [
+    [R`$N=32$`, R`That uses $b_N<\frac1{1000}$. The error of $S_N$ is bounded by the first **omitted** term $b_{N+1}$, so $N+1\ge32$ gives $N=31$.`, 'off-by-one'],
+    [R`$N=1000$`, R`You dropped the square. $b_{N+1}=\frac1{(N+1)^2}$, so $(N+1)^2>1000$ is enough.`, 'dropped-factor'],
+    [R`$N=100$`, R`$N=100$ works (error $<\frac1{10000}$), but the question asks for the smallest $N$.`, 'conceptual'],
+    [R`$N=30$`, R`$N=30$ gives $b_{31}=\frac1{961}>\frac1{1000}$, so it is too small.`, 'off-by-one'],
+  ],
+  keyWhy: R`Need $\frac1{(N+1)^2}<\frac1{1000}$, i.e. $(N+1)^2>1000$. $31^2=961<1000<1024=32^2$, so $N+1\ge32$.`,
+  hints: [R`Error $\le b_{N+1}$, the first term you left out.`],
+  steps: [R`Alternating series error: $|S-S_N|\le b_{N+1}=\frac1{(N+1)^2}$.`, R`Solve $(N+1)^2>1000$: $N+1\ge32$.`, R`Smallest $N=31$.`],
+  recall: R`Alternating series error is the first omitted term -- so test $b_{N+1}$, not $b_N$.`,
+}));
+
+P.push(mk({
+  id: 't-app-limit', topic: AP, diff: 3, src: 'Exam 3 style — limit via Maclaurin series',
+  prompt: R`Use a Maclaurin series to evaluate $\displaystyle\lim_{x\to0}\frac{x-\sin x}{x^{3}}$.`,
+  key: R`$\dfrac{1}{6}$`,
+  wrong: [
+    [R`$-\dfrac{1}{6}$`, R`Sign: $x-\sin x=+\frac{x^3}{3!}-\dots$. Distribute the minus on the whole $\sin x$ series.`, 'sign'],
+    [R`$\dfrac{1}{3}$`, R`The cubic term of $\sin x$ is $\frac{x^3}{3!}=\frac{x^3}{6}$, not $\frac{x^3}{3}$.`, 'formula-confusion'],
+    [R`$0$`, R`The $x$'s cancel but the $x^3$ term survives, and the denominator is also $x^3$.`, 'conceptual'],
+    [R`$1$`, R`Not $1$: that is $\lim\frac{\sin x}{x}$. The numerator starts at $x^{3}$ with coefficient $\frac16$.`, 'conceptual'],
+  ],
+  keyWhy: R`$x-\sin x=\frac{x^{3}}{6}-\frac{x^{5}}{120}+\cdots$; divide by $x^3$ and let $x\to0$.`,
+  hints: [R`Substitute $\sin x=x-\frac{x^3}{3!}+\frac{x^5}{5!}-\cdots$`],
+  steps: [R`$x-\sin x=x-\left(x-\frac{x^{3}}{6}+\frac{x^{5}}{120}-\cdots\right)=\frac{x^{3}}{6}-\frac{x^{5}}{120}+\cdots$`, R`Divide by $x^3$: $\frac16-\frac{x^{2}}{120}+\cdots\to\frac16$.`],
+  recall: R`Series limits: expand, cancel the leading terms, divide by the lowest power left.`,
+}));
+
+P.push(mk({
+  id: 't-app-integral', topic: AP, diff: 3, src: 'Exam 3 style — integrate a series term by term',
+  prompt: R`Find the first two nonzero terms of the Maclaurin series for $\displaystyle\int\sin(x^{2})\,dx$ (take $C=0$).`,
+  key: R`$\dfrac{x^{3}}{3}-\dfrac{x^{7}}{42}$`,
+  wrong: [
+    [R`$\dfrac{x^{3}}{3}-\dfrac{x^{7}}{6}$`, R`You integrated the first term but forgot to integrate $-\frac{x^{6}}{6}$: it becomes $-\frac{x^{7}}{6\cdot7}=-\frac{x^7}{42}$.`, 'dropped-factor'],
+    [R`$x^{2}-\dfrac{x^{6}}{6}$`, R`That is $\sin(x^2)$ itself, not its antiderivative.`, 'conceptual'],
+    [R`$\dfrac{x^{3}}{3}-\dfrac{x^{7}}{7}$`, R`The $\frac{1}{3!}$ from the sine series was lost.`, 'formula-confusion'],
+    [R`$\dfrac{x^{3}}{3}+\dfrac{x^{7}}{42}$`, R`The sine series alternates; the second term is negative.`, 'sign'],
+  ],
+  keyWhy: R`$\sin(x^2)=x^2-\frac{x^6}{6}+\cdots$; integrate term by term.`,
+  hints: [R`Substitute $u=x^2$ into $\sin u$, then integrate each term.`],
+  steps: [R`$\sin(x^{2})=x^{2}-\frac{x^{6}}{3!}+\cdots$`, R`$\int x^{2}=\frac{x^3}{3}$, $\int\frac{x^{6}}{6}=\frac{x^{7}}{42}$.`],
+  recall: R`No elementary antiderivative? Expand, integrate term by term, and add $C$.`,
+}));
+
+P.push(mk({
+  id: 't-app-binom', topic: AP, diff: 3, src: 'Exam 3 style — binomial series',
+  prompt: R`Write the first three terms of the Maclaurin series for $\sqrt{1+x}$ using the binomial series.`,
+  key: R`$1+\dfrac{x}{2}-\dfrac{x^{2}}{8}$`,
+  wrong: [
+    [R`$1+\dfrac{x}{2}+\dfrac{x^{2}}{8}$`, R`$\binom{1/2}{2}=\frac{(1/2)(-1/2)}{2}=-\frac18$ is negative.`, 'sign'],
+    [R`$1+\dfrac{x}{2}-\dfrac{x^{2}}{4}$`, R`You forgot the $2!$: $\frac{(1/2)(-1/2)}{2!}=-\frac18$.`, 'dropped-factor'],
+    [R`$1+x-\dfrac{x^{2}}{2}$`, R`The exponent is $\frac12$, so the linear coefficient is $\frac12$.`, 'formula-confusion'],
+    [R`$1+\dfrac{x}{2}-\dfrac{x^{2}}{2}$`, R`Check: $\binom{1/2}{2}=\frac{\frac12\cdot(-\frac12)}{2}=-\frac18$.`, 'algebra-slip'],
+  ],
+  keyWhy: R`$(1+x)^{k}=1+kx+\frac{k(k-1)}{2!}x^{2}+\cdots$ with $k=\frac12$.`,
+  hints: [R`$(1+x)^k=\sum\binom{k}{n}x^n$ with $k=\frac12$.`],
+  steps: [R`$k=\frac12$: $kx=\frac x2$.`, R`$\frac{k(k-1)}{2!}=\frac{\frac12\cdot(-\frac12)}{2}=-\frac18$.`],
+  recall: R`Binomial series: $1+kx+\frac{k(k-1)}{2!}x^2+\frac{k(k-1)(k-2)}{3!}x^3+\cdots$.`,
+}));
+
+P.push(mk({
+  id: 't-app-sum-ln', topic: AP, diff: 4, src: 'Exam 3 Q5 style — sum by recognising ln(1+x)',
+  prompt: R`Find the exact sum $\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^{n+1}}{n\,2^{n}}$.`,
+  key: R`$\ln\dfrac{3}{2}$`,
+  wrong: [
+    [R`$\ln 2$`, R`That is the sum at $x=1$. Here $\frac{1}{2^n}$ means $x=\frac12$.`, 'setup'],
+    [R`$\ln\dfrac{1}{2}$`, R`$\ln(1+x)$ at $x=\frac12$ is $\ln\frac32$; $\ln\frac12$ would be $x=-\frac12$.`, 'sign'],
+    [R`$\dfrac{1}{3}$`, R`That is geometric: $\frac{1/2}{1+1/2}$. The extra $\frac1n$ makes this a logarithm.`, 'formula-confusion'],
+    [R`$\ln\dfrac{5}{2}$`, R`$1+x=1+\frac12=\frac32$, not $\frac52$.`, 'algebra-slip'],
+  ],
+  keyWhy: R`$\ln(1+x)=\sum_{n\ge1}\frac{(-1)^{n+1}x^{n}}{n}$ and $x=\frac12$ gives exactly this.`,
+  hints: [R`Match to $\ln(1+x)$; $\frac1{2^n}=\left(\frac12\right)^{n}$.`],
+  steps: [R`$\frac{(-1)^{n+1}}{n2^{n}}=\frac{(-1)^{n+1}(1/2)^{n}}{n}$.`, R`Sum $=\ln\left(1+\frac12\right)=\ln\frac32$.`],
+  recall: R`Pull the $n$th power out, read off $x$, and name the series by its denominator ($n$ means log).`,
+}));
+
+// ---- G: T_2 of sqrt(x) at c=a^2 ----
+G.push({
+  id: 'gt-poly-sqrt', unit: 'series', topic: TP, diff: 3,
+  src: 'Exam 3 Q7 style — Taylor polynomial at a nonzero centre',
+  make(r) {
+    const a = r.int(2, 5), c = a * a;
+    const key = `$${a}+\\dfrac{x-${c}}{${2 * a}}-\\dfrac{(x-${c})^{2}}{${8 * a ** 3}}$`;
+    return {
+      prompt: `Find the degree-2 Taylor polynomial $T_2(x)$ for $f(x)=\\sqrt{x}$ centred at $x=${c}$.`,
+      choices: [{ t: key, ok: true }, ...choose(key, [
+        { t: `$${a}+\\dfrac{x-${c}}{${2 * a}}-\\dfrac{(x-${c})^{2}}{${4 * a ** 3}}$`, why: `$f''(${c})=-\\frac{1}{${4 * a ** 3}}$ but the term needs $\\frac{f''}{2!}=-\\frac{1}{${8 * a ** 3}}$. Divide by $2!$.`, err: 'dropped-factor' },
+        { t: `$${a}+\\dfrac{x-${c}}{${2 * a}}+\\dfrac{(x-${c})^{2}}{${8 * a ** 3}}$`, why: '$f\'\'(x)=-\\frac14x^{-3/2}$ is negative, so the quadratic term is negative.', err: 'sign' },
+        { t: `$${a}+\\dfrac{x-${c}}{${a}}-\\dfrac{(x-${c})^{2}}{${8 * a ** 3}}$`, why: `$f'(x)=\\frac{1}{2\\sqrt{x}}$ so $f'(${c})=\\frac{1}{${2 * a}}$, not $\\frac1{${a}}$.`, err: 'algebra-slip' },
+        { t: `$${a}+\\dfrac{x}{${2 * a}}-\\dfrac{x^{2}}{${8 * a ** 3}}$`, why: `Powers must be $(x-${c})^n$ for centre $${c}$.`, err: 'setup' },
+      ])],
+      hint: `$f'=\\frac12x^{-1/2}$ and $f''=-\\frac14x^{-3/2}$; evaluate at $${c}$.`,
+      steps: [`$f(${c})=${a}$.`, `$f'(${c})=\\frac{1}{2\\cdot${a}}=\\frac1{${2 * a}}$.`, `$f''(${c})=-\\frac14\\cdot\\frac{1}{${a ** 3}}=-\\frac1{${4 * a ** 3}}$, then divide by $2!$: $-\\frac1{${8 * a ** 3}}$.`],
+      recall: '$T_n=\\sum\\frac{f^{(k)}(c)}{k!}(x-c)^k$. Always divide by $k!$.',
+    };
+  },
+});
+
+// ---- G: Taylor series from scratch at nonzero centre ----
+G.push({
+  id: 'gt-tay-scratch', unit: 'series', topic: TM, diff: 4,
+  src: 'Exam 3 Q2 style — Taylor series from scratch',
+  make(r) {
+    if (r.pick(['inv', 'exp']) === 'inv') {
+      const c = r.int(2, 5);
+      const key = `$\\displaystyle\\sum_{n=0}^{\\infty}\\frac{(-1)^{n}}{${c}^{n+1}}(x-${c})^{n}$`;
+      return {
+        prompt: `Find the Taylor series for $f(x)=\\dfrac1x$ centred at $x=${c}$.`,
+        choices: [{ t: key, ok: true }, ...choose(key, [
+          { t: `$\\displaystyle\\sum_{n=0}^{\\infty}\\frac{(-1)^{n}}{${c}^{n}}(x-${c})^{n}$`, why: `Check $f(${c})=\\frac1{${c}}$: the $n=0$ term must be $\\frac{1}{${c}}$, so the denominator is $${c}^{n+1}$.`, err: 'off-by-one' },
+          { t: `$\\displaystyle\\sum_{n=0}^{\\infty}\\frac{1}{${c}^{n+1}}(x-${c})^{n}$`, why: `Alternating: $f'(${c})=-\\frac1{${c * c}}<0$.`, err: 'sign' },
+          { t: `$\\displaystyle\\sum_{n=0}^{\\infty}\\frac{(-1)^{n}}{${c}^{n+1}}(x+${c})^{n}$`, why: `Centre is $${c}$, so the base is $(x-${c})$.`, err: 'sign' },
+          { t: `$\\displaystyle\\sum_{n=0}^{\\infty}\\frac{(-1)^{n}}{${c}^{n+1}}x^{n}$`, why: `Powers must be $(x-${c})^n$.`, err: 'setup' },
+        ])],
+        hint: `Write $x=${c}+(x-${c})$, factor out ${c}, aim for $\\frac{1}{1-r}$.`,
+        steps: [`$\\frac1x=\\frac{1}{${c}\\left(1+\\frac{x-${c}}{${c}}\\right)}$.`, `Geometric with $r=-\\frac{x-${c}}{${c}}$: $\\frac1{${c}}\\sum\\left(-\\frac{x-${c}}{${c}}\\right)^{n}$.`, `Check $f(${c})=\\frac1{${c}}$.`],
+        recall: 'Off-centre geometric: factor out $c$. Sanity-check $f(c)$.',
+      };
+    }
+    const c = r.int(1, 3), k = r.int(2, 3);
+    const key = `$\\displaystyle\\sum_{n=0}^{\\infty}\\frac{${k}^{n}e^{${k * c}}}{n!}(x-${c})^{n}$`;
+    return {
+      prompt: `Find the Taylor series for $f(x)=e^{${k}x}$ centred at $x=${c}$.`,
+      choices: [{ t: key, ok: true }, ...choose(key, [
+        { t: `$\\displaystyle\\sum_{n=0}^{\\infty}\\frac{e^{${k * c}}}{n!}(x-${c})^{n}$`, why: `Each derivative brings a factor ${k}: $f^{(n)}(x)=${k}^{n}e^{${k}x}$ (chain rule).`, err: 'chain-rule' },
+        { t: `$\\displaystyle\\sum_{n=0}^{\\infty}\\frac{${k}^{n}e^{${k}}}{n!}(x-${c})^{n}$`, why: `$f(${c})=e^{${k}\\cdot${c}}=e^{${k * c}}$, not $e^{${k}}$.`, err: 'algebra-slip' },
+        { t: `$\\displaystyle\\sum_{n=0}^{\\infty}\\frac{${k}^{n}e^{${k * c}}}{n!}x^{n}$`, why: `Powers must be $(x-${c})^n$.`, err: 'setup' },
+        { t: `$\\displaystyle\\sum_{n=0}^{\\infty}${k}^{n}e^{${k * c}}(x-${c})^{n}$`, why: 'The $n!$ was dropped.', err: 'dropped-factor' },
+      ])],
+      hint: 'Differentiate $e^{kx}$ a few times and spot $k^{n}e^{kx}$.',
+      steps: [`$f^{(n)}(x)=${k}^{n}e^{${k}x}$, so $f^{(n)}(${c})=${k}^{n}e^{${k * c}}$.`, 'Divide by $n!$ and attach $(x-c)^n$.'],
+      recall: 'Chain rule gives $k^n$ in the $n$th derivative of $e^{kx}$; evaluate at the centre.',
+    };
+  },
+});
+
+// ---- G: choose n for error bound ----
+G.push({
+  id: 'gt-lagr-choose-n', unit: 'series', topic: TP, diff: 4,
+  src: 'Exam 3 Q7 style — smallest degree for a given error',
+  make(r) {
+    const [tol, k] = r.pick([[10, 4], [100, 5], [1000, 7]]);
+    const fn = r.pick(['\\sin x', '\\cos x']);
+    const n = k - 1;
+    const key = `$n=${n}$`;
+    return {
+      prompt: `Use $T_n(x)$ for $${fn}$ about $0$ to approximate $${fn}$ on $|x|\\le1$. What is the smallest $n$ for which the Taylor Remainder Theorem guarantees error less than $\\frac{1}{${tol}}$?`,
+      choices: [{ t: key, ok: true }, ...choose(key, [
+        { t: `$n=${k}$`, why: `Works but is not smallest: you used $n!$ instead of $(n+1)!$. With $n=${n}$ the bound is $\\frac1{${k}!}$.`, err: 'off-by-one' },
+        { t: `$n=${k - 2}$`, why: `Bound is $\\frac1{${k - 1}!}=\\frac1{${[1, 1, 2, 6, 24, 120, 720][k - 1]}}$, which is not less than $\\frac1{${tol}}$.`, err: 'off-by-one' },
+        { t: `$n=${k + 2}$`, why: 'Large enough, but not the smallest.', err: 'conceptual' },
+      ])],
+      hint: `$|f^{(n+1)}|\\le1$ and $|x|\\le1$, so $|R_n|\\le\\frac{1}{(n+1)!}$. Find the least $n$ with $(n+1)!>${tol}$.`,
+      steps: ['$|R_n(x)|\\le\\frac{M|x|^{n+1}}{(n+1)!}\\le\\frac{1}{(n+1)!}$.', `Need $(n+1)!>${tol}$: $${k - 1}!=${[1, 1, 2, 6, 24, 120, 720][k - 1]}$ fails, $${k}!=${[1, 1, 2, 6, 24, 120, 720, 5040][k]}$ works.`, `So $n+1=${k}$, $n=${n}$.`],
+      recall: 'Error bound is $\\frac{1}{(n+1)!}$ for sin/cos on $|x|\\le1$. Find the smallest factorial exceeding $1/\\text{tol}$.',
+    };
+  },
+});
+
+// ---- G: alternating-series error bound ----
+G.push({
+  id: 'gt-alt-bound', unit: 'series', topic: 'Alternating Series & Error', diff: 3,
+  src: 'Exam 3 style — alternating series error bound',
+  make(r) {
+    const p = r.int(2, 3), N = r.int(3, 5);
+    const key = `$\\dfrac{1}{${(N + 1) ** p}}$`;
+    return {
+      prompt: `Let $S_{${N}}$ be the sum of the first ${N} terms of $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{(-1)^{n+1}}{n^{${p}}}$. What is the best bound on $|S-S_{${N}}|$ from the Alternating Series Estimation Theorem?`,
+      choices: [{ t: key, ok: true }, ...choose(key, [
+        { t: `$\\dfrac{1}{${N ** p}}$`, why: `That is $b_{${N}}$, the last term you kept. The bound is the first **omitted** term $b_{${N + 1}}$.`, err: 'off-by-one' },
+        { t: `$\\dfrac{1}{${(N + 2) ** p}}$`, why: `Skipped one term too far; $b_{${N + 1}}$ is the next one.`, err: 'off-by-one' },
+        { t: `$\\dfrac{1}{${N + 1}}$`, why: `Forgot to raise to the power ${p}.`, err: 'dropped-factor' },
+      ])],
+      hint: 'Error $\\le b_{N+1}$.',
+      steps: [`$b_n=\\frac1{n^{${p}}}$ is decreasing to $0$.`, `$|S-S_{${N}}|\\le b_{${N + 1}}=\\frac1{${N + 1}^{${p}}}=\\frac1{${(N + 1) ** p}}$.`],
+      recall: 'Alternating series error is at most the first omitted term.',
+    };
+  },
+});
+
+// ---- G: limits via series ----
+G.push({
+  id: 'gt-series-limit', unit: 'series', topic: AP, diff: 3,
+  src: 'Exam 3 style — limit via Maclaurin series',
+  make(r) {
+    const a = r.int(2, 3);
+    const kind = r.pick(['exp', 'cos', 'sin']);
+    let f, key, wr, steps;
+    if (kind === 'exp') {
+      f = `\\dfrac{e^{${a}x}-1-${a}x}{x^{2}}`; key = frac(a * a, 2);
+      wr = [[frac(a * a, 1), 'You forgot the $2!$ in $\\frac{(ax)^2}{2!}$.', 'dropped-factor'], [frac(a, 2), 'The squared term is $\\frac{(ax)^2}{2}=\\frac{a^2x^2}{2}$: square the $a$.', 'algebra-slip'], ['0', 'The $x^2$ term survives the cancellation.', 'conceptual']];
+      steps = [`$e^{${a}x}=1+${a}x+\\frac{${a * a}x^{2}}{2}+\\cdots$`, `Numerator $=\\frac{${a * a}}{2}x^{2}+\\cdots$; divide by $x^2$.`];
+    } else if (kind === 'cos') {
+      f = `\\dfrac{1-\\cos(${a}x)}{x^{2}}`; key = frac(a * a, 2);
+      wr = [[frac(-a * a, 2), 'Sign: $1-\\cos u=+\\frac{u^2}{2}-\\cdots$.', 'sign'], [frac(a * a, 1), 'Missing the $\\frac1{2!}$.', 'dropped-factor'], [frac(a, 2), 'Square the $a$: $(ax)^2=a^2x^2$.', 'algebra-slip']];
+      steps = [`$\\cos(${a}x)=1-\\frac{${a * a}x^{2}}{2}+\\cdots$`, `$1-\\cos(${a}x)=\\frac{${a * a}}{2}x^{2}-\\cdots$; divide by $x^2$.`];
+    } else {
+      f = `\\dfrac{\\sin(${a}x)-${a}x}{x^{3}}`; key = frac(-(a ** 3), 6);
+      wr = [[frac(a ** 3, 6), 'Sign: $\\sin u-u=-\\frac{u^3}{3!}+\\cdots$.', 'sign'], [frac(-(a ** 3), 3), 'The cubic term has $3!=6$, not $3$.', 'formula-confusion'], [frac(-a, 6), 'Cube the $a$: $(ax)^3=a^3x^3$.', 'algebra-slip']];
+      steps = [`$\\sin(${a}x)=${a}x-\\frac{${a ** 3}x^{3}}{6}+\\cdots$`, `Numerator $=-\\frac{${a ** 3}}{6}x^{3}+\\cdots$; divide by $x^3$.`];
+    }
+    const kt = `$${key}$`;
+    return {
+      prompt: `Use a Maclaurin series to find $\\displaystyle\\lim_{x\\to0}${f}$.`,
+      choices: [{ t: kt, ok: true }, ...choose(kt, wr.map(([t, why, err]) => ({ t: `$${t}$`, why, err })))],
+      hint: 'Substitute the series, cancel the leading terms, divide by the lowest power left.',
+      steps,
+      recall: 'Series limits: expand, cancel, divide by the lowest surviving power.',
+    };
+  },
+});
+
+// ---- G: numeric approximation by T_2 ----
+G.push({
+  id: 'gt-approx-value', unit: 'series', topic: AP, diff: 3,
+  src: 'Exam 3 style — approximate a value with a Taylor polynomial',
+  make(r) {
+    const k = r.pick([2, 3, 4, 5, 10]);
+    if (r.pick(['exp', 'sqrt']) === 'exp') {
+      const key = `$${frac(2 * k * k + 2 * k + 1, 2 * k * k)}$`;
+      return {
+        prompt: `Use the degree-2 Maclaurin polynomial of $e^{x}$ to approximate $e^{1/${k}}$.`,
+        choices: [{ t: key, ok: true }, ...choose(key, [
+          { t: `$${frac(k * k + k + 1, k * k)}$`, why: 'Forgot $2!$: the third term is $\\frac{x^2}{2}$.', err: 'dropped-factor' },
+          { t: `$${frac(k + 1, k)}$`, why: 'That is $T_1$; degree 2 includes $\\frac{x^2}{2}$.', err: 'off-by-one' },
+          { t: `$${frac(6 * k ** 3 + 6 * k * k + 3 * k + 1, 6 * k ** 3)}$`, why: 'That is $T_3$; stop at $\\frac{x^2}{2!}$.', err: 'off-by-one' },
+        ])],
+        hint: `$T_2(x)=1+x+\\frac{x^2}{2}$ at $x=\\frac1{${k}}$.`,
+        steps: [`$T_2(\\tfrac1{${k}})=1+\\frac1{${k}}+\\frac{1}{2\\cdot${k * k}}=${frac(2 * k * k + 2 * k + 1, 2 * k * k)}$.`],
+        recall: '$e^x\\approx1+x+\\frac{x^2}{2}+\\frac{x^3}{6}$. Plug in a nice fraction.',
+      };
+    }
+    // sqrt(1+x) = 1 + x/2 - x^2/8
+    const key = `$${frac(8 * k * k + 4 * k - 1, 8 * k * k)}$`;
+    return {
+      prompt: `Use the degree-2 binomial (Maclaurin) polynomial of $\\sqrt{1+x}$ to approximate $\\sqrt{1+\\frac1{${k}}}$.`,
+      choices: [{ t: key, ok: true }, ...choose(key, [
+        { t: `$${frac(8 * k * k + 4 * k + 1, 8 * k * k)}$`, why: 'The $x^2$ term is negative: $-\\frac{x^2}{8}$.', err: 'sign' },
+        { t: `$${frac(4 * k * k + 2 * k - 1, 4 * k * k)}$`, why: 'The quadratic term is $\\frac{x^2}{8}$, not $\\frac{x^2}{4}$ (forgot $2!$).', err: 'dropped-factor' },
+        { t: `$${frac(2 * k + 1, 2 * k)}$`, why: 'That stops at degree 1.', err: 'off-by-one' },
+      ])],
+      hint: '$\\sqrt{1+x}\\approx1+\\frac x2-\\frac{x^2}{8}$.',
+      steps: [`$1+\\frac1{${2 * k}}-\\frac1{${8 * k * k}}=${frac(8 * k * k + 4 * k - 1, 8 * k * k)}$.`],
+      recall: 'Binomial: $\\sqrt{1+x}=1+\\frac x2-\\frac{x^2}{8}+\\frac{x^3}{16}-\\cdots$.',
+    };
+  },
+});
+
+// ---- G: integrate a series term by term ----
+G.push({
+  id: 'gt-series-integral', unit: 'series', topic: AP, diff: 3,
+  src: 'Exam 3 style — integral via series',
+  make(r) {
+    const k = r.int(2, 3);
+    if (r.pick(['cos', 'exp']) === 'cos') {
+      const key = `$x-\\dfrac{x^{${2 * k + 1}}}{${2 * (2 * k + 1)}}$`;
+      return {
+        prompt: `Find the first two nonzero terms of the Maclaurin series for $\\displaystyle\\int\\cos(x^{${k}})\\,dx$ (take $C=0$).`,
+        choices: [{ t: key, ok: true }, ...choose(key, [
+          { t: `$x-\\dfrac{x^{${2 * k + 1}}}{2}$`, why: `Integrating $x^{${2 * k}}$ gives $\\frac{x^{${2 * k + 1}}}{${2 * k + 1}}$: divide by the new power.`, err: 'dropped-factor' },
+          { t: `$1-\\dfrac{x^{${2 * k}}}{2}$`, why: 'That is $\\cos(x^k)$ itself, not its antiderivative.', err: 'conceptual' },
+          { t: `$x-\\dfrac{x^{${2 * k + 1}}}{${2 * k + 1}}$`, why: 'The $\\frac{1}{2!}$ from the cosine series was lost.', err: 'formula-confusion' },
+          { t: `$x+\\dfrac{x^{${2 * k + 1}}}{${2 * (2 * k + 1)}}$`, why: 'Cosine series alternates: second term negative.', err: 'sign' },
+        ])],
+        hint: `Substitute $x^{${k}}$ into $\\cos u=1-\\frac{u^2}{2}+\\cdots$ then integrate.`,
+        steps: [`$\\cos(x^{${k}})=1-\\frac{x^{${2 * k}}}{2}+\\cdots$`, `Integrate: $x-\\frac{x^{${2 * k + 1}}}{2(${2 * k + 1})}$.`],
+        recall: 'Expand, then integrate term by term; remember to divide by the new exponent.',
+      };
+    }
+    const key = `$x+\\dfrac{x^{${k + 1}}}{${k + 1}}$`;
+    return {
+      prompt: `Find the first two terms of the Maclaurin series for $\\displaystyle\\int e^{x^{${k}}}\\,dx$ (take $C=0$).`,
+      choices: [{ t: key, ok: true }, ...choose(key, [
+        { t: `$1+x^{${k}}$`, why: 'That is the series for the integrand, not the antiderivative.', err: 'conceptual' },
+        { t: `$x+x^{${k + 1}}$`, why: `Integrating $x^{${k}}$ gives $\\frac{x^{${k + 1}}}{${k + 1}}$.`, err: 'dropped-factor' },
+        { t: `$x+\\dfrac{x^{${k + 1}}}{${k + 1}!}$`, why: 'The factorial belongs in the exponential series term ($\\frac{u^n}{n!}$), and for $n=1$ it is $1$.', err: 'formula-confusion' },
+        { t: `$x-\\dfrac{x^{${k + 1}}}{${k + 1}}$`, why: '$e^{u}$ has all positive terms.', err: 'sign' },
+      ])],
+      hint: `$e^{x^{${k}}}=1+x^{${k}}+\\cdots$; integrate.`,
+      steps: [`$e^{x^{${k}}}=1+x^{${k}}+\\frac{x^{${2 * k}}}{2}+\\cdots$`, `Integrate: $x+\\frac{x^{${k + 1}}}{${k + 1}}+\\cdots$`],
+      recall: 'Integrate term by term.',
+    };
+  },
+});
+
+// ---- G: sum by recognising ln(1+x) / arctan ----
+G.push({
+  id: 'gt-sum-log-arctan', unit: 'series', topic: AP, diff: 4,
+  src: 'Exam 3 Q5 style — sum by recognising ln(1+x) or arctan x',
+  make(r) {
+    const k = r.int(2, 4);
+    if (r.pick(['ln', 'atan']) === 'ln') {
+      const key = `$\\ln\\dfrac{${k + 1}}{${k}}$`;
+      return {
+        prompt: `Find the exact sum $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{(-1)^{n+1}}{n\\,${k}^{n}}$.`,
+        choices: [{ t: key, ok: true }, ...choose(key, [
+          { t: `$\\ln\\dfrac{${k}}{${k + 1}}$`, why: 'Inverted: $\\ln(1+x)$ at $x=\\frac1{k}$ is $\\ln\\frac{k+1}{k}$.', err: 'inverted' },
+          { t: `$\\ln ${k + 1}$`, why: `$x=\\frac1{${k}}$, not $${k}$.`, err: 'setup' },
+          { t: `$\\dfrac{1}{${k + 1}}$`, why: 'That is geometric; the $\\frac1n$ makes it a log.', err: 'formula-confusion' },
+          { t: `$\\ln\\dfrac{${k + 2}}{${k}}$`, why: `$1+\\frac1{${k}}=\\frac{${k + 1}}{${k}}$.`, err: 'algebra-slip' },
+        ])],
+        hint: 'Compare with $\\ln(1+x)=\\sum\\frac{(-1)^{n+1}x^n}{n}$.',
+        steps: [`$\\frac{1}{${k}^{n}}=(\\frac1{${k}})^n$, so $x=\\frac1{${k}}$.`, `Sum $=\\ln(1+\\frac1{${k}})=\\ln\\frac{${k + 1}}{${k}}$.`],
+        recall: 'Denominator $n$ means log. Read $x$ from the geometric factor.',
+      };
+    }
+    const key = `$\\arctan\\dfrac{1}{${k}}$`;
+    return {
+      prompt: `Find the exact sum $\\displaystyle\\sum_{n=0}^{\\infty}\\frac{(-1)^{n}}{(2n+1)\\,${k}^{2n+1}}$.`,
+      choices: [{ t: key, ok: true }, ...choose(key, [
+        { t: `$\\arctan ${k}$`, why: `$x^{2n+1}=\\frac1{${k}^{2n+1}}$ means $x=\\frac1{${k}}$.`, err: 'inverted' },
+        { t: `$\\ln\\dfrac{${k + 1}}{${k}}$`, why: 'Odd powers with $2n+1$ in the denominator is $\\arctan$, not $\\ln(1+x)$.', err: 'formula-confusion' },
+        { t: `$\\sin\\dfrac{1}{${k}}$`, why: 'Sine needs $(2n+1)!$; here the denominator is $2n+1$ only.', err: 'formula-confusion' },
+        { t: `$\\dfrac{\\pi}{4}$`, why: 'That is $\\arctan1$, i.e. $x=1$.', err: 'setup' },
+      ])],
+      hint: '$\\arctan x=\\sum\\frac{(-1)^nx^{2n+1}}{2n+1}$.',
+      steps: [`$x=\\frac1{${k}}$.`, `Sum $=\\arctan\\frac1{${k}}$.`],
+      recall: 'Denominator $2n+1$, odd powers, alternating: arctan.',
+    };
+  },
+});
+
+// ---- G: IOC about nonzero centre ----
+G.push({
+  id: 'gt-ioc-center', unit: 'series', topic: 'Power Series & Radius', diff: 4,
+  src: 'Exam 3 Q3 style — interval of convergence with endpoints, nonzero centre',
+  make(r) {
+    const c = r.pick([-3, -2, -1, 1, 2, 3]), k = r.int(2, 4);
+    const base = c > 0 ? `(x-${c})` : `(x+${-c})`;
+    const lo = c - k, hi = c + k;
+    const key = `$[${lo},\\,${hi})$`;
+    return {
+      prompt: `Find the interval of convergence of $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{${base}^{n}}{n\\,${k}^{n}}$.`,
+      choices: [{ t: key, ok: true }, ...choose(key, [
+        { t: `$(${lo},\\,${hi})$`, why: 'Right radius, but the endpoints were not tested.', err: 'endpoints' },
+        { t: `$[${lo},\\,${hi}]$`, why: `At $x=${hi}$ the series is $\\sum\\frac1n$ (harmonic) which diverges.`, err: 'endpoints' },
+        { t: `$(${lo},\\,${hi}]$`, why: `Reversed: $x=${hi}$ gives harmonic (diverges) and $x=${lo}$ gives alternating harmonic (converges).`, err: 'endpoints' },
+        { t: `$[${-k},\\,${k})$`, why: `Centre is $${c}$, not $0$; the interval is centred at $${c}$.`, err: 'setup' },
+      ])],
+      hint: 'Ratio test for the radius, then test each endpoint.',
+      steps: [`Ratio test: $|x-(${c})|/${k}<1$, so $R=${k}$.`, `$x=${hi}$: $\\sum\\frac1n$ diverges. $x=${lo}$: $\\sum\\frac{(-1)^n}{n}$ converges.`, `Interval: $[${lo},${hi})$.`],
+      recall: 'Centre $c$, radius $R$: open interval $(c-R,c+R)$, then test both endpoints.',
+    };
+  },
+});
+
 export const taylor = { unit: 'series', problems: P, generators: G };

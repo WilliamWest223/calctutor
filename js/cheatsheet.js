@@ -184,6 +184,21 @@ const SECTIONS = [
     ],
   },
   {
+    id: 'exam3', name: 'Exam 3 review', keywords: 'taylor maclaurin remainder lagrange error binomial interval convergence endpoints',
+    rows: [
+      { n: 'Table', t: '\\tfrac{1}{1-x}\\!:\\,(-1,1)\\quad e^{x},\\sin x,\\cos x\\!:\\,(-\\infty,\\infty)\\quad \\ln(1+x)\\!:\\,(-1,1]\\quad \\tan^{-1}x\\!:\\,[-1,1]', note: 'Know series, first two terms, and IOC for all six.' },
+      { n: 'Taylor', t: 'T_n(x)=\\sum_{k=0}^{n}\\frac{f^{(k)}(c)}{k!}(x-c)^{k}', note: 'From scratch: list $f^{(k)}(c)$ as numbers, find the pattern, divide by $k!$.' },
+      { n: 'Remainder', t: '|R_n(x)|\\le\\frac{M\\,|x-c|^{n+1}}{(n+1)!},\\quad M\\ge|f^{(n+1)}|\\text{ on the interval}', note: 'Degree $n$ means derivative $n+1$. Bound $M$ and $|x-c|^{n+1}$ separately. $\\sin,\\cos,e^{x}$: $M=1$ or $e^{b}$.' },
+      { n: 'Choose n', t: '\\frac{M|x-c|^{n+1}}{(n+1)!}<\\text{tol}', note: 'Try $n=1,2,3,\\dots$; factorials $1,2,6,24,120,720$.' },
+      { n: 'Alt. error', t: '|S-S_N|\\le b_{N+1}', note: 'First **omitted** term.' },
+      { n: 'IOC', t: '|x-c|<R,\\ \\text{then test } c\\pm R', note: 'Ratio Test never settles endpoints. $\\sum\\frac1n$ diverges, $\\sum\\frac{(-1)^n}{n}$ and $p>1$ converge.' },
+      { n: 'Binomial', t: '(1+x)^{k}=1+kx+\\frac{k(k-1)}{2!}x^{2}+\\frac{k(k-1)(k-2)}{3!}x^{3}+\\cdots', note: '$\\sqrt{1+x}=1+\\frac x2-\\frac{x^{2}}{8}+\\cdots$' },
+      { n: 'Limits', t: '\\lim_{x\\to0}\\frac{x-\\sin x}{x^{3}}=\\frac16', note: 'Expand, cancel, divide by lowest power left.' },
+      { n: 'Integrals', t: '\\int f(x^{k})\\,dx:\\ \\text{expand, integrate term by term, divide by new exponent}' },
+      { n: 'Sums', t: '\\sum\\frac{x^{n}}{n!}=e^{x},\\ \\sum\\frac{(-1)^{n+1}x^{n}}{n}=\\ln(1+x),\\ \\sum\\frac{(-1)^{n}x^{2n+1}}{2n+1}=\\tan^{-1}x', note: 'Rewrite $a^{n}/b^{n}$ as $(a/b)^{n}$; subtract skipped terms if the start index differs.' },
+    ],
+  },
+  {
     id: 'algebra', name: 'Algebra',
     rows: [
       { n: 'Exponents', t: 'x^{a}x^{b}=x^{a+b},\\quad \\frac{x^{a}}{x^{b}}=x^{a-b},\\quad (x^{a})^{b}=x^{ab}' },
@@ -196,6 +211,19 @@ const SECTIONS = [
       { n: 'Sums', t: '\\sum_{i=1}^{n}i=\\frac{n(n+1)}{2},\\qquad \\sum_{i=1}^{n}i^{2}=\\frac{n(n+1)(2n+1)}{6}' },
       { n: 'Growth order', t: '\\ln n\\;\\ll\\;n^{p}\\;\\ll\\;e^{n}\\;\\ll\\;n!\\;\\ll\\;n^{n}' },
       { n: 'Geometry', t: 'A_{\\bigcirc}=\\pi r^{2},\\;\\; C=2\\pi r,\\;\\; V_{\\text{sph}}=\\tfrac43\\pi r^{3},\\;\\; V_{\\text{cone}}=\\tfrac13\\pi r^{2}h' },
+    ],
+  },
+  {
+    id: 'finalrev', name: 'Final review', keywords: 'final exam arc length surface area polar parametric area tangent improper integral test strategy',
+    rows: [
+      { n: 'Arc length', t: 'L=\\int\\sqrt{1+y\'^{2}}\\,dx=\\int\\sqrt{x\'^{2}+y\'^{2}}\\,dt=\\int\\sqrt{r^{2}+r\'^{2}}\\,d\\theta', note: 'Exam problems are rigged: the radicand is a perfect square. Expand it.' },
+      { n: 'Surface area', t: 'S=2\\pi\\int y\\sqrt{1+y\'^{2}}\\,dx', note: 'About the $x$-axis; the radius is $y$. About the $y$-axis use $x$.' },
+      { n: 'Polar area', t: 'A=\\tfrac12\\int r^{2}\\,d\\theta,\\qquad A=\\tfrac12\\int(r_{\\text{out}}^{2}-r_{\\text{in}}^{2})\\,d\\theta', note: 'Limits from where $r=0$ or where the curves cross.' },
+      { n: 'Polar slope', t: '\\frac{dy}{dx}=\\frac{r\'\\sin\\theta+r\\cos\\theta}{r\'\\cos\\theta-r\\sin\\theta}' },
+      { n: 'Petals', t: 'r=\\cos k\\theta:\\; k\\text{ odd}\\to k,\\;\\; k\\text{ even}\\to 2k', note: 'Limaçon $a+b\\cos\\theta$: $a<b$ loop, $a=b$ cardioid.' },
+      { n: 'Parametric', t: '\\frac{dy}{dx}=\\frac{y\'}{x\'},\\quad \\frac{d^{2}y}{dx^{2}}=\\frac{\\frac{d}{dt}(dy/dx)}{x\'},\\quad A=\\int y\\,x\'\\,dt', note: 'Horizontal: $y\'=0$. Vertical: $x\'=0$.' },
+      { n: 'Improper', t: '\\int_1^{\\infty}\\frac{dx}{x^{p}}\\ \\text{conv}\\iff p>1;\\quad \\int_0^{1}\\frac{dx}{x^{p}}\\ \\text{conv}\\iff p<1', note: 'Write the limit explicitly; $a\\ln a\\to0$ as $a\\to0^{+}$.' },
+      { n: 'Which method', t: '\\sqrt{a^{2}-x^{2}}\\!\\to\\!\\sin,\\;\\; a^{2}+x^{2}\\!\\to\\!\\tan,\\;\\; \\sqrt{x^{2}-a^{2}}\\!\\to\\!\\sec', note: 'Then: $u$-sub first, parts for products (LIATE), partial fractions for rational functions.' },
     ],
   },
 ];

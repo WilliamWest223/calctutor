@@ -393,4 +393,530 @@ G.push({
   },
 });
 
+// =================================================================
+// DEEPENING — conversion, curve facts, areas, slopes, parametric calculus
+// =================================================================
+
+P.push({
+  id: 'p-rect-to-polar', topic: 'Polar Coordinates', diff: 2,
+  prompt: 'Which polar equation describes the circle $x^{2}+(y-2)^{2}=4$?',
+  choices: [
+    { t: '$r=4\\sin\\theta$', ok: true },
+    { t: '$r=2\\sin\\theta$', why: 'You used the radius. $r=a\\sin\\theta$ is a circle of **diameter** $a$, and this circle has diameter $4$.', err: 'formula-confusion' },
+    { t: '$r=4\\cos\\theta$', why: '$r=a\\cos\\theta$ sits on the $x$-axis. This circle is centred on the $y$-axis at $(0,2)$, so it needs sine.', err: 'formula-confusion' },
+    { t: '$r=2$', why: 'That is a circle of radius $2$ centred at the **origin**. Expanding shows $x^{2}+y^{2}=4y$ — there is a $4y$ on the right.' },
+  ],
+  steps: [
+    'Expand: $x^{2}+y^{2}-4y+4=4$, so $x^{2}+y^{2}=4y$.',
+    'Substitute $x^{2}+y^{2}=r^{2}$ and $y=r\\sin\\theta$: $r^{2}=4r\\sin\\theta$.',
+    'Divide by $r$: $r=4\\sin\\theta$ (the origin is still on the curve at $\\theta=0$).',
+  ],
+  recall: 'Circle through the origin with diameter $a$: $r=a\\cos\\theta$ (centre on the $x$-axis) or $r=a\\sin\\theta$ (centre on the $y$-axis).',
+});
+
+P.push({
+  id: 'p-limacon-loop', topic: 'Polar Coordinates', diff: 2,
+  prompt: 'The graph of $r=1+2\\cos\\theta$ is:',
+  choices: [
+    { t: 'a limaçon with an inner loop', ok: true },
+    { t: 'a cardioid', why: 'A cardioid needs $a=b$ in $r=a+b\\cos\\theta$. Here $a=1<b=2$, so $r$ goes negative and a small inner loop appears.' },
+    { t: 'a circle', why: 'A circle is $r=a\\cos\\theta$ or $r=a$ — there is no constant term added to a multiple of cosine.' },
+    { t: 'a two-petal rose', why: 'Roses are $r=a\\cos(k\\theta)$ with the angle multiplied. Here the angle is plain $\\theta$ and there is an added constant.' },
+  ],
+  steps: [
+    'Write it as $r=a+b\\cos\\theta$ with $a=1$, $b=2$.',
+    'Compare: $a=b$ cardioid; $a<b$ inner loop; $b<a<2b$ dimpled; $a\\ge2b$ convex.',
+    '$1<2$, so $r$ becomes negative on $\\frac{2\\pi}{3}<\\theta<\\frac{4\\pi}{3}$ — that is the inner loop.',
+  ],
+  recall: 'Limaçon $r=a+b\\cos\\theta$: **$a<b$** inner loop, **$a=b$** cardioid, **$a>b$** no loop.',
+  viz: { kind: 'polar', r: t => 1 + 2 * Math.cos(t), t0: 0, t1: Math.PI * 2, tag: 'r = 1 + 2cos θ', cap: 'The small loop inside the big one is traced while $r<0$.' },
+});
+
+P.push({
+  id: 'p-polar-slope', topic: 'Polar Area & Arc Length', diff: 3,
+  prompt: 'For $r=f(\\theta)$, the slope $\\dfrac{dy}{dx}$ is:',
+  choices: [
+    { t: '$\\dfrac{r\'\\sin\\theta+r\\cos\\theta}{r\'\\cos\\theta-r\\sin\\theta}$', ok: true },
+    { t: '$\\dfrac{r\'}{r}$', why: 'That is not a slope. Polar slope comes from $x=r\\cos\\theta$, $y=r\\sin\\theta$ with the product rule on each.', err: 'formula-confusion' },
+    { t: '$\\dfrac{r\'\\cos\\theta+r\\sin\\theta}{r\'\\sin\\theta-r\\cos\\theta}$', why: 'Signs and sines/cosines are scrambled. $y\'=r\'\\sin\\theta+r\\cos\\theta$ on top; $x\'=r\'\\cos\\theta-r\\sin\\theta$ on the bottom.', err: 'sign' },
+    { t: '$\\dfrac{r\'\\cos\\theta-r\\sin\\theta}{r\'\\sin\\theta+r\\cos\\theta}$', why: 'Upside down: that is $\\frac{dx}{dy}$. Slope is $\\frac{dy/d\\theta}{dx/d\\theta}$.', err: 'inverted' },
+  ],
+  steps: [
+    '$x=r\\cos\\theta$, $y=r\\sin\\theta$ with $r=f(\\theta)$.',
+    '$\\dfrac{dy}{d\\theta}=r\'\\sin\\theta+r\\cos\\theta$, $\\dfrac{dx}{d\\theta}=r\'\\cos\\theta-r\\sin\\theta$ (product rule).',
+    '$\\dfrac{dy}{dx}=\\dfrac{dy/d\\theta}{dx/d\\theta}$.',
+  ],
+  recall: 'Polar slope is just parametric slope with parameter $\\theta$. Horizontal tangent: numerator $0$; vertical: denominator $0$.',
+});
+
+P.push({
+  id: 'p-innerloop-area', topic: 'Polar Area & Arc Length', diff: 4,
+  prompt: 'Find the area of the **inner loop** of $r=1+2\\cos\\theta$.',
+  choices: [
+    { t: '$\\pi-\\dfrac{3\\sqrt3}{2}$', ok: true },
+    { t: '$3\\pi$', why: 'That is $\\frac12\\int_0^{2\\pi}r^{2}d\\theta$ over the whole curve, which adds the inner loop to the outer region. The inner loop is only $\\frac{2\\pi}{3}\\le\\theta\\le\\frac{4\\pi}{3}$.' },
+    { t: '$\\pi+\\dfrac{3\\sqrt3}{2}$', why: 'Sign slip when evaluating $\\sin\\frac{4\\pi}{3}-\\sin\\frac{2\\pi}{3}=-\\sqrt3$. Check the sign of each sine value.', err: 'sign' },
+    { t: '$2\\pi-3\\sqrt3$', why: 'Exactly double the answer — the $\\frac12$ in $A=\\frac12\\int r^{2}d\\theta$ was dropped.' },
+  ],
+  steps: [
+    'The inner loop is traced while $r<0$: $1+2\\cos\\theta<0$ for $\\theta\\in\\left(\\frac{2\\pi}{3},\\frac{4\\pi}{3}\\right)$.',
+    '$A=\\dfrac12\\displaystyle\\int_{2\\pi/3}^{4\\pi/3}(1+2\\cos\\theta)^{2}d\\theta=\\dfrac12\\int(1+4\\cos\\theta+2+2\\cos2\\theta)\\,d\\theta$.',
+    '$=\\dfrac12\\left[3\\theta+4\\sin\\theta+\\sin2\\theta\\right]_{2\\pi/3}^{4\\pi/3}$.',
+    '$=\\dfrac12\\left(2\\pi-4\\sqrt3+\\left(\\tfrac{\\sqrt3}{2}+\\tfrac{\\sqrt3}{2}\\right)\\right)=\\pi-\\dfrac{3\\sqrt3}{2}$.',
+  ],
+  recall: 'Inner loop: set $r=0$ for the limits, then integrate $\\frac12r^{2}$ only between those two angles.',
+  viz: { kind: 'polar', r: t => 1 + 2 * Math.cos(t), t0: 2 * Math.PI / 3, t1: 4 * Math.PI / 3, tag: 'inner loop of r = 1 + 2cos θ', cap: 'Only the small loop is swept between the two zeros of $r$.' },
+});
+
+P.push({
+  id: 'p-area-between', topic: 'Polar Area & Arc Length', diff: 4,
+  prompt: 'Find the area inside $r=3\\sin\\theta$ and outside $r=1+\\sin\\theta$.',
+  choices: [
+    { t: '$\\pi$', ok: true },
+    { t: '$\\dfrac{9\\pi}{4}$', why: 'That is the whole circle $r=3\\sin\\theta$ (radius $\\frac32$). You must remove the part inside the limaçon.' },
+    { t: '$\\pi-\\dfrac{3\\sqrt3}{2}$', why: 'You squared the difference $(r_1-r_2)^{2}$. The correct integrand is the difference of squares $r_1^{2}-r_2^{2}$.', err: 'setup' },
+    { t: '$-\\pi$', why: 'Outer and inner are swapped. On $\\frac{\\pi}{6}\\le\\theta\\le\\frac{5\\pi}{6}$ the circle is farther out, so it comes first.' },
+  ],
+  steps: [
+    'Intersect: $3\\sin\\theta=1+\\sin\\theta\\Rightarrow\\sin\\theta=\\frac12$, so $\\theta=\\frac{\\pi}{6},\\frac{5\\pi}{6}$.',
+    'On that interval the circle is outside: $A=\\dfrac12\\displaystyle\\int_{\\pi/6}^{5\\pi/6}\\left(9\\sin^{2}\\theta-(1+\\sin\\theta)^{2}\\right)d\\theta$.',
+    'Integrand: $8\\sin^{2}\\theta-2\\sin\\theta-1=3-4\\cos2\\theta-2\\sin\\theta$.',
+    '$A=\\dfrac12\\left[3\\theta-2\\sin2\\theta+2\\cos\\theta\\right]_{\\pi/6}^{5\\pi/6}=\\dfrac12(2\\pi)=\\pi$.',
+  ],
+  recall: 'Between curves: $\\frac12\\int(r_{\\text{out}}^{2}-r_{\\text{in}}^{2})\\,d\\theta$ — subtract the **squares**, with limits from where they cross.',
+});
+
+P.push({
+  id: 'p-polar-arc-cardioid', topic: 'Polar Area & Arc Length', diff: 3,
+  prompt: 'Find the total length of the cardioid $r=1+\\cos\\theta$.',
+  choices: [
+    { t: '$8$', ok: true },
+    { t: '$4$', why: 'That is the half-curve $0\\le\\theta\\le\\pi$. The cardioid closes at $\\theta=2\\pi$; double by symmetry.' },
+    { t: '$\\dfrac{3\\pi}{2}$', why: 'That is the **area** $\\frac12\\int r^{2}d\\theta$. Length uses $\\sqrt{r^{2}+r\'^{2}}$.', err: 'formula-confusion' },
+    { t: '$4\\pi$', why: 'Check the algebra: $r^{2}+r\'^{2}=2+2\\cos\\theta=4\\cos^{2}\\frac\\theta2$, whose root is $2\\cos\\frac\\theta2$ — no $\\pi$ appears.' },
+  ],
+  steps: [
+    '$r^{2}+(r\')^{2}=(1+\\cos\\theta)^{2}+\\sin^{2}\\theta=2+2\\cos\\theta=4\\cos^{2}\\frac{\\theta}{2}$.',
+    '$L=2\\displaystyle\\int_0^{\\pi}2\\cos\\frac{\\theta}{2}\\,d\\theta$ (use symmetry so $\\cos\\frac\\theta2\\ge0$).',
+    '$=4\\left[2\\sin\\frac{\\theta}{2}\\right]_0^{\\pi}=8$.',
+  ],
+  recall: 'Cardioid arc length: the radicand collapses to a perfect square via $1+\\cos\\theta=2\\cos^{2}\\frac\\theta2$. $L=8a$ for $r=a(1+\\cos\\theta)$.',
+});
+
+P.push({
+  id: 'p-param-d2', topic: 'Parametric Calculus', diff: 3,
+  prompt: 'For $x=t^{2}$, $y=t^{3}$ (with $t>0$), find $\\dfrac{d^{2}y}{dx^{2}}$.',
+  choices: [
+    { t: '$\\dfrac{3}{4t}$', ok: true },
+    { t: '$\\dfrac{3}{2}$', why: 'That is $\\frac{d}{dt}\\left(\\frac{dy}{dx}\\right)$. The second derivative with respect to $x$ needs one more division by $\\frac{dx}{dt}$.', err: 'chain' },
+    { t: '$3t$', why: 'You computed $\\frac{y\'\'(t)}{x\'\'(t)}=\\frac{6t}{2}$. That is not $\\frac{d^{2}y}{dx^{2}}$ — differentiate the **slope**, then divide by $x\'(t)$.', err: 'formula-confusion' },
+    { t: '$\\dfrac{3t}{2}$', why: 'That is the first derivative $\\frac{dy}{dx}=\\frac{3t^{2}}{2t}$, not the second.' },
+  ],
+  steps: [
+    '$\\dfrac{dy}{dx}=\\dfrac{3t^{2}}{2t}=\\dfrac{3t}{2}$.',
+    'Differentiate that **in $t$**: $\\dfrac{d}{dt}\\left(\\dfrac{3t}{2}\\right)=\\dfrac32$.',
+    'Divide by $\\dfrac{dx}{dt}=2t$: $\\dfrac{d^{2}y}{dx^{2}}=\\dfrac{3/2}{2t}=\\dfrac{3}{4t}$.',
+  ],
+  recall: '$\\dfrac{d^{2}y}{dx^{2}}=\\dfrac{\\frac{d}{dt}\\left(\\frac{dy}{dx}\\right)}{dx/dt}$. Differentiate the slope in $t$, then divide by $x\'(t)$.',
+});
+
+P.push({
+  id: 'p-param-vertical', topic: 'Parametric Calculus', diff: 3,
+  prompt: 'For $x=t^{3}-3t$, $y=t^{2}$, at which $t$ does the curve have a **vertical** tangent?',
+  choices: [
+    { t: '$t=\\pm1$', ok: true },
+    { t: '$t=0$', why: 'At $t=0$: $\\frac{dy}{dt}=0$ and $\\frac{dx}{dt}=-3\\ne0$, so the tangent is **horizontal**, not vertical.', err: 'horiz-vert' },
+    { t: '$t=\\pm\\sqrt3$', why: 'Those are the zeros of $x=t(t^{2}-3)$. Vertical tangents come from $\\frac{dx}{dt}=0$, not $x=0$.', err: 'setup' },
+    { t: '$t=1$ only', why: '$\\frac{dx}{dt}=3t^{2}-3=0$ at both $t=1$ and $t=-1$, and $\\frac{dy}{dt}=2t\\ne0$ at each.' },
+  ],
+  steps: [
+    '$\\dfrac{dx}{dt}=3t^{2}-3=3(t-1)(t+1)$, zero at $t=\\pm1$.',
+    '$\\dfrac{dy}{dt}=2t$, which is $\\pm2\\ne0$ there, so the slope is infinite.',
+    'Vertical tangents at $t=\\pm1$.',
+  ],
+  recall: 'Vertical: $\\frac{dx}{dt}=0$ with $\\frac{dy}{dt}\\ne0$. Horizontal: $\\frac{dy}{dt}=0$ with $\\frac{dx}{dt}\\ne0$.',
+});
+
+P.push({
+  id: 'p-param-area', topic: 'Parametric Calculus', diff: 3,
+  prompt: 'Find the area under the curve $x=t^{2}$, $y=t^{3}$ for $0\\le t\\le2$.',
+  choices: [
+    { t: '$\\dfrac{64}{5}$', ok: true },
+    { t: '$4$', why: 'You integrated $\\int y\\,dt$. Area is $\\int y\\,dx=\\int y\\,\\frac{dx}{dt}\\,dt$, so the factor $2t$ is needed.' },
+    { t: '$\\dfrac{32}{5}$', why: 'You dropped the $2$ from $\\frac{dx}{dt}=2t$.' },
+    { t: '$\\dfrac{128}{5}$', why: 'The factor $2$ from $\\frac{dx}{dt}=2t$ is used once, not twice.' },
+  ],
+  steps: [
+    '$A=\\displaystyle\\int y\\,dx=\\int_0^{2}y(t)\\,x\'(t)\\,dt$.',
+    '$=\\displaystyle\\int_0^{2}t^{3}\\cdot2t\\,dt=\\int_0^{2}2t^{4}dt$.',
+    '$=\\dfrac{2t^{5}}{5}\\Big|_0^{2}=\\dfrac{64}{5}$.',
+  ],
+  recall: 'Parametric area: $\\int y\\,dx\\to\\int y(t)\\,x\'(t)\\,dt$, with the **$t$-limits**.',
+});
+
+// ---- generators -------------------------------------------------------
+const cf = v => (v === 1 ? '' : v);
+const gcd2 = (a, b) => (b ? gcd2(b, a % b) : Math.abs(a));
+/** (n/d)·t^p as TeX, reduced; p may be negative. */
+const mono = (n, d, p) => {
+  const g = gcd2(n, d); n /= g; d /= g;
+  const ap = Math.abs(p), tp = ap === 0 ? '' : ap === 1 ? 't' : `t^{${ap}}`;
+  if (p >= 0) {
+    const num = tp ? (n === 1 ? tp : `${n}${tp}`) : `${n}`;
+    return d === 1 ? num : `\\dfrac{${num}}{${d}}`;
+  }
+  return `\\dfrac{${n}}{${d === 1 ? '' : d}${tp}}`;
+};
+
+G.push({
+  id: 'g-p-rect2polar', topic: 'Polar Coordinates', diff: 2,
+  make(r) {
+    const a = r.int(2, 5);
+    const kind = r.pick(['origin', 'line', 'cirY', 'cirX']);
+    let prompt, key, pool, steps;
+    if (kind === 'origin') {
+      prompt = `Write $x^{2}+y^{2}=${a * a}$ in polar form.`;
+      key = `$r=${a}$`;
+      pool = [
+        { t: `$r=${a * a}$`, why: `$r^{2}=${a * a}$, so $r=\\sqrt{${a * a}}=${a}$. You forgot the square root.` },
+        { t: `$r=${a}\\cos\\theta$`, why: 'That circle passes through the origin. This one is centred **at** the origin, so $r$ is constant.' },
+        { t: `$r=${2 * a}$`, why: `The radius is $\\sqrt{${a * a}}=${a}$; ${2 * a} would be the diameter.` },
+        { t: `$\\theta=${a}$`, why: 'That is a ray, not a circle. A circle about the origin has fixed $r$.' },
+      ];
+      steps = [`Substitute $x^{2}+y^{2}=r^{2}$: $r^{2}=${a * a}$.`, `$r=${a}$.`];
+    } else if (kind === 'line') {
+      prompt = `Write the line $y=${a}$ in polar form.`;
+      key = `$r=${a}\\csc\\theta$`;
+      pool = [
+        { t: `$r=${a}\\sec\\theta$`, why: `That is $x=${a}$ (since $r\\cos\\theta=${a}$). Horizontal lines use $y=r\\sin\\theta$.` },
+        { t: `$r=${a}\\sin\\theta$`, why: `That is a circle. From $r\\sin\\theta=${a}$ you must **divide** by $\\sin\\theta$, not multiply.` },
+        { t: `$r=${a}\\cos\\theta$`, why: 'That is a circle through the origin, and uses the wrong function for a horizontal line.' },
+        { t: `$\\theta=${a}$`, why: `That is a line through the origin at angle $${a}$ radians, not the horizontal line.` },
+      ];
+      steps = [`$y=r\\sin\\theta=${a}$.`, `Solve for $r$: $r=\\dfrac{${a}}{\\sin\\theta}=${a}\\csc\\theta$.`];
+    } else if (kind === 'cirY') {
+      prompt = `Write $x^{2}+y^{2}=${2 * a}y$ in polar form.`;
+      key = `$r=${2 * a}\\sin\\theta$`;
+      pool = [
+        { t: `$r=${a}\\sin\\theta$`, why: `$r^{2}=${2 * a}r\\sin\\theta$ gives $r=${2 * a}\\sin\\theta$ — you halved the coefficient.` },
+        { t: `$r=${2 * a}\\cos\\theta$`, why: 'The right side has $y$, which is $r\\sin\\theta$. Cosine goes with $x$.' },
+        { t: `$r=${2 * a}$`, why: `$x^{2}+y^{2}=r^{2}$ equals $${2 * a}y=${2 * a}r\\sin\\theta$, not a constant.` },
+        { t: `$r=${4 * a * a}\\sin\\theta$`, why: 'You squared the coefficient. Only $r^{2}$ is replaced; $2ay$ becomes $2ar\\sin\\theta$.' },
+      ];
+      steps = [`$r^{2}=${2 * a}\\,r\\sin\\theta$.`, `Divide by $r$: $r=${2 * a}\\sin\\theta$.`];
+    } else {
+      prompt = `Write $x^{2}+y^{2}=${2 * a}x$ in polar form.`;
+      key = `$r=${2 * a}\\cos\\theta$`;
+      pool = [
+        { t: `$r=${a}\\cos\\theta$`, why: `$r^{2}=${2 * a}r\\cos\\theta$ gives $r=${2 * a}\\cos\\theta$ — you halved the coefficient.` },
+        { t: `$r=${2 * a}\\sin\\theta$`, why: 'The right side has $x$, which is $r\\cos\\theta$. Sine goes with $y$.' },
+        { t: `$r=${2 * a}$`, why: `The right side is $${2 * a}x=${2 * a}r\\cos\\theta$, not a constant.` },
+        { t: `$r=${4 * a * a}\\cos\\theta$`, why: 'You squared the coefficient. Only $r^{2}$ is replaced; $2ax$ becomes $2ar\\cos\\theta$.' },
+      ];
+      steps = [`$r^{2}=${2 * a}\\,r\\cos\\theta$.`, `Divide by $r$: $r=${2 * a}\\cos\\theta$.`];
+    }
+    return {
+      prompt,
+      choices: [{ t: key, ok: true }, ...choose(key, pool)],
+      steps,
+      recall: '$x=r\\cos\\theta$, $y=r\\sin\\theta$, $x^{2}+y^{2}=r^{2}$. Replace, then divide out a common $r$.',
+    };
+  },
+});
+
+G.push({
+  id: 'g-p-curvefacts', topic: 'Polar Coordinates', diff: 2,
+  make(r) {
+    const [a, b] = r.pick([[2, 2], [3, 3], [4, 4], [1, 2], [1, 3], [2, 3], [2, 4], [3, 2], [4, 3], [5, 3], [4, 2], [6, 3], [5, 2]]);
+    const fn = r.pick(['\\cos', '\\sin']);
+    const types = {
+      card: 'a cardioid', loop: 'a limaçon with an inner loop',
+      dimple: 'a dimpled limaçon (no inner loop)', convex: 'a convex limaçon (no dimple, no loop)',
+    };
+    const k = a === b ? 'card' : a < b ? 'loop' : a < 2 * b ? 'dimple' : 'convex';
+    const why = {
+      card: `$a=b$ gives the cusp at the origin — a cardioid.`,
+      loop: `$a<b$ lets $r$ go negative, which draws an inner loop.`,
+      dimple: `$b<a<2b$: $r$ stays positive, but the curve is dented on one side.`,
+      convex: `$a\\ge2b$ keeps the curve convex — no dent at all.`,
+    };
+    return {
+      prompt: `Classify $r=${a}+${b}${fn}\\theta$.`,
+      choices: Object.keys(types).map(t => (t === k
+        ? { t: types[t], ok: true }
+        : { t: types[t], why: `Compare $a=${a}$ with $b=${b}$. ${why[k]} That is not what ${types[t]} needs.` })),
+      steps: [
+        `Match $r=a+b${fn}\\theta$: $a=${a}$, $b=${b}$.`,
+        `Rule: $a=b$ cardioid; $a<b$ inner loop; $b<a<2b$ dimple; $a\\ge2b$ convex.`,
+        `$a=${a}$ vs $b=${b}$: ${why[k]}`,
+      ],
+      recall: 'Compare the constant $a$ with the coefficient $b$: equal → cardioid, smaller → inner loop, larger → no loop.',
+    };
+  },
+});
+
+G.push({
+  id: 'g-p-polarslope', topic: 'Polar Area & Arc Length', diff: 3,
+  make(r) {
+    const a = r.int(1, 3), b = r.int(1, 4);
+    const key = `$${frac(b, a)}$`;
+    return {
+      prompt: `Find the slope $\\dfrac{dy}{dx}$ of $r=${a}+${b}\\cos\\theta$ at $\\theta=\\dfrac{\\pi}{2}$.`,
+      choices: [
+        { t: key, ok: true },
+        ...choose(key, [
+          { t: `$${frac(a, b)}$`, why: 'Inverted. The numerator is $\\frac{dy}{d\\theta}$ and the denominator $\\frac{dx}{d\\theta}$.', err: 'inverted' },
+          { t: `$${frac(-b, a)}$`, why: 'Sign error: both $-b$ (numerator) and $-a$ (denominator) are negative, so the signs cancel.', err: 'sign' },
+          { t: `$${frac(-a, b)}$`, why: 'Inverted and wrong sign. Recompute $\\frac{dy}{d\\theta}$ and $\\frac{dx}{d\\theta}$ at $\\theta=\\frac\\pi2$.', err: 'sign' },
+          { t: '$0$', why: 'Slope $0$ needs $\\frac{dy}{d\\theta}=0$. Here $r\'\\sin\\theta=-' + b + '\\ne0$.' },
+          { t: '$\\text{DNE}$', why: 'Undefined needs $\\frac{dx}{d\\theta}=0$. Here $-r\\sin\\theta=-' + a + '\\ne0$.' },
+        ]),
+      ],
+      steps: [
+        `At $\\theta=\\frac\\pi2$: $r=${a}$ and $r\'=-${b}\\sin\\theta=-${b}$.`,
+        `$\\dfrac{dy}{d\\theta}=r\'\\sin\\theta+r\\cos\\theta=-${b}(1)+${a}(0)=-${b}$.`,
+        `$\\dfrac{dx}{d\\theta}=r\'\\cos\\theta-r\\sin\\theta=-${b}(0)-${a}(1)=-${a}$.`,
+        `Slope $=\\dfrac{-${b}}{-${a}}=${frac(b, a)}$.`,
+      ],
+      recall: 'Polar slope: $\\frac{r\'\\sin\\theta+r\\cos\\theta}{r\'\\cos\\theta-r\\sin\\theta}$. At $\\theta=\\frac\\pi2$ the $\\cos$ terms vanish and it reduces to $\\frac{r\'}{-r}$.',
+    };
+  },
+});
+
+G.push({
+  id: 'g-p-param-elim', topic: 'Parametric Curves', diff: 2,
+  make(r) {
+    const kind = r.pick(['ellipse', 'parab', 'power']);
+    if (kind === 'ellipse') {
+      const [a, b] = r.pick([[2, 3], [3, 4], [2, 5], [4, 5], [3, 5], [4, 3]]);
+      const key = `$\\dfrac{x^{2}}{${a * a}}+\\dfrac{y^{2}}{${b * b}}=1$`;
+      return {
+        prompt: `Eliminate the parameter: $x=${a}\\cos t$, $y=${b}\\sin t$.`,
+        choices: [
+          { t: key, ok: true },
+          ...choose(key, [
+            { t: `$\\dfrac{x^{2}}{${b * b}}+\\dfrac{y^{2}}{${a * a}}=1$`, why: 'Denominators swapped. $x$ ranges over $\\pm' + a + '$ so $x^{2}$ gets ' + a * a + '.' },
+            { t: `$\\dfrac{x^{2}}{${a}}+\\dfrac{y^{2}}{${b}}=1$`, why: 'The denominators must be squared: $\\frac{x}{' + a + '}=\\cos t$, so $\\frac{x^{2}}{' + a * a + '}=\\cos^{2}t$.' },
+            { t: `$x^{2}+y^{2}=${a * a + b * b}$`, why: 'That treats it as a circle. The two amplitudes differ, so $\\cos^{2}t+\\sin^{2}t=1$ must be applied to $\\frac{x}{a}$ and $\\frac{y}{b}$ separately.' },
+          ]),
+        ],
+        steps: [`$\\cos t=\\dfrac{x}{${a}}$, $\\sin t=\\dfrac{y}{${b}}$.`, `Use $\\cos^{2}t+\\sin^{2}t=1$.`, `$\\dfrac{x^{2}}{${a * a}}+\\dfrac{y^{2}}{${b * b}}=1$ — an ellipse.`],
+        recall: 'Trig parametrization → isolate $\\cos t$ and $\\sin t$, square, add.',
+      };
+    }
+    if (kind === 'parab') {
+      const a = r.int(1, 4);
+      const key = `$y=(x-${a})^{2}$`;
+      return {
+        prompt: `Eliminate the parameter: $x=t+${a}$, $y=t^{2}$.`,
+        choices: [
+          { t: key, ok: true },
+          ...choose(key, [
+            { t: `$y=(x+${a})^{2}$`, why: `Solve for $t$ carefully: $t=x-${a}$, not $x+${a}$.`, err: 'sign' },
+            { t: `$y=x^{2}-${a}$`, why: `Substitute $t=x-${a}$ **inside** the square; you cannot subtract after squaring.` },
+            { t: `$y=x^{2}+${a * a}$`, why: `$t=x-${a}$, so $t^{2}=(x-${a})^{2}$ — not $x^{2}$ plus a constant.` },
+          ]),
+        ],
+        steps: [`$t=x-${a}$.`, `Substitute: $y=t^{2}=(x-${a})^{2}$.`],
+        recall: 'Solve the simpler equation for $t$, then substitute into the other.',
+      };
+    }
+    const k = r.int(2, 3);
+    const key = `$y=x^{${k}}$`;
+    return {
+      prompt: `Eliminate the parameter: $x=e^{t}$, $y=e^{${k}t}$.`,
+      choices: [
+        { t: key, ok: true },
+        ...choose(key, [
+          { t: `$y=${k}x$`, why: `$e^{${k}t}=(e^{t})^{${k}}$ is a **power** of $x$, not a multiple.` },
+          { t: `$y=x^{1/${k}}$`, why: `Exponent inverted: $y=e^{${k}t}=(e^{t})^{${k}}=x^{${k}}$.` },
+          { t: `$y=e^{${k}x}$`, why: `$x=e^{t}$, so $e^{${k}t}$ is $x^{${k}}$; exponentials of $x$ do not appear.` },
+        ]),
+      ],
+      steps: [`$e^{${k}t}=(e^{t})^{${k}}$.`, `Since $x=e^{t}$: $y=x^{${k}}$ (for $x>0$).`],
+      recall: 'Rewrite one coordinate using the other: $e^{kt}=(e^{t})^{k}$. Remember the domain restriction ($x>0$).',
+    };
+  },
+});
+
+G.push({
+  id: 'g-p-param-d2', topic: 'Parametric Calculus', diff: 3,
+  make(r) {
+    const m = r.int(3, 6);
+    const key = `$${mono(m * (m - 2), 4, m - 4)}$`;
+    return {
+      prompt: `For $x=t^{2}$, $y=t^{${m}}$ with $t>0$, find $\\dfrac{d^{2}y}{dx^{2}}$.`,
+      choices: [
+        { t: key, ok: true },
+        ...choose(key, [
+          { t: `$${mono(m * (m - 2), 2, m - 3)}$`, why: 'That is only $\\frac{d}{dt}\\left(\\frac{dy}{dx}\\right)$. Divide once more by $\\frac{dx}{dt}=2t$.', err: 'chain' },
+          { t: `$${mono(m * (m - 1), 2, m - 2)}$`, why: 'That is $\\frac{y\'\'(t)}{x\'\'(t)}$, which is not the second derivative of $y$ with respect to $x$.', err: 'formula-confusion' },
+          { t: `$${mono(m, 2, m - 2)}$`, why: 'That is the **first** derivative $\\frac{dy}{dx}$. One more round is needed.' },
+        ]),
+      ],
+      steps: [
+        `$\\dfrac{dy}{dx}=\\dfrac{${m}t^{${m - 1}}}{2t}=${mono(m, 2, m - 2)}$.`,
+        `$\\dfrac{d}{dt}\\left(\\dfrac{dy}{dx}\\right)=${mono(m * (m - 2), 2, m - 3)}$.`,
+        `Divide by $\\dfrac{dx}{dt}=2t$: $\\dfrac{d^{2}y}{dx^{2}}=${mono(m * (m - 2), 4, m - 4)}$.`,
+      ],
+      recall: '$\\dfrac{d^{2}y}{dx^{2}}=\\dfrac{\\frac{d}{dt}(dy/dx)}{dx/dt}$ — differentiate the slope in $t$, then divide by $x\'(t)$.',
+    };
+  },
+});
+
+G.push({
+  id: 'g-p-param-tangent', topic: 'Parametric Calculus', diff: 3,
+  make(r) {
+    const k = r.int(1, 4);
+    const horiz = r.pick([true, false]);
+    const key = `$t=\\pm${cf(k)}$`;
+    const body = horiz ? `x=t^{2},\\ y=t^{3}-${3 * k * k}t` : `x=t^{3}-${3 * k * k}t,\\ y=t^{2}`;
+    const zero = horiz
+      ? { t: '$t=0$', why: 'There $\\frac{dx}{dt}=2t=0$ while $\\frac{dy}{dt}=' + (-3 * k * k) + '\\ne0$ — a **vertical** tangent.', err: 'horiz-vert' }
+      : { t: '$t=0$', why: 'There $\\frac{dy}{dt}=0$ while $\\frac{dx}{dt}=' + (-3 * k * k) + '\\ne0$ — a **horizontal** tangent.', err: 'horiz-vert' };
+    return {
+      prompt: `For $${body}$, at which $t$ is the tangent **${horiz ? 'horizontal' : 'vertical'}**?`,
+      choices: [
+        { t: key, ok: true },
+        ...choose(key, [
+          zero,
+          { t: `$t=0,\\ \\pm${cf(k)}$`, why: 'Exactly one of the derivatives vanishes at each good point. At $t=0$ the other one vanishes instead, so $t=0$ does not belong.' },
+          { t: `$t=\\pm${3 * k}$`, why: `Solve $3t^{2}=${3 * k * k}$ properly: $t^{2}=${k * k}$, so $t=\\pm${k}$.` },
+          { t: `$t=\\pm${cf(k)}\\sqrt3$`, why: `Divide $3t^{2}-${3 * k * k}=0$ through by $3$ first: $t^{2}=${k * k}$.` },
+        ]),
+      ],
+      steps: horiz ? [
+        `Horizontal needs $\\frac{dy}{dt}=0$ and $\\frac{dx}{dt}\\ne0$.`,
+        `$\\dfrac{dy}{dt}=3t^{2}-${3 * k * k}=0\\Rightarrow t=\\pm${k}$.`,
+        `Check $\\dfrac{dx}{dt}=2t=\\pm${2 * k}\\ne0$. ✓`,
+      ] : [
+        `Vertical needs $\\frac{dx}{dt}=0$ and $\\frac{dy}{dt}\\ne0$.`,
+        `$\\dfrac{dx}{dt}=3t^{2}-${3 * k * k}=0\\Rightarrow t=\\pm${k}$.`,
+        `Check $\\dfrac{dy}{dt}=2t=\\pm${2 * k}\\ne0$. ✓`,
+      ],
+      recall: 'Horizontal: $y\'(t)=0$. Vertical: $x\'(t)=0$. Always confirm the other derivative is nonzero.',
+    };
+  },
+});
+
+G.push({
+  id: 'g-p-param-arclen-eval', topic: 'Parametric Calculus', diff: 4,
+  make(r) {
+    const c = r.int(1, 3), b = r.pick([3, 6]);
+    const L = c * (b * b * b / 3 + b);
+    const key = `$${L}$`;
+    return {
+      prompt: `Find the length of $x=${cf(c)}t^{2}$, $y=${cf(c)}\\left(\\dfrac{t^{3}}{3}-t\\right)$ for $0\\le t\\le${b}$.`,
+      choices: [
+        { t: key, ok: true },
+        ...choose(key, [
+          { t: `$${c * (b * b * b / 3 - b)}$`, why: 'Sign slip: $(t^{2}-1)^{2}+4t^{2}=(t^{2}+1)^{2}$, so the integrand is $t^{2}+1$, not $t^{2}-1$.', err: 'sign' },
+          { t: `$${c * b * b * b / 3}$`, why: 'You dropped the $+1$ in $t^{2}+1$; integrate both terms.' },
+          { t: `$${L / c}$`, why: `You lost the constant factor $${c}$ that scales both coordinates (and the length).` },
+          { t: `$${2 * L}$`, why: 'Length is $\\int\\sqrt{x\'^{2}+y\'^{2}}\\,dt$ — the root of the sum, not twice the integral.' },
+          { t: `$${c * b * b}$`, why: 'That ignores the cubic term entirely; integrate $t^{2}+1$ over $[0,' + b + ']$.' },
+        ]),
+      ],
+      steps: [
+        `$x\'=${2 * c}t$, $y\'=${cf(c)}(t^{2}-1)$.`,
+        `$x\'^{2}+y\'^{2}=${c * c}\\left(4t^{2}+(t^{2}-1)^{2}\\right)=${c * c}(t^{2}+1)^{2}$.`,
+        `$L=\\displaystyle\\int_0^{${b}}${cf(c)}(t^{2}+1)\\,dt=${cf(c)}\\left[\\dfrac{t^{3}}{3}+t\\right]_0^{${b}}=${L}$.`,
+      ],
+      recall: 'Arc length only works out by hand when $x\'^{2}+y\'^{2}$ is a perfect square — look for $4t^{2}+(t^{2}-1)^{2}=(t^{2}+1)^{2}$.',
+    };
+  },
+});
+
+G.push({
+  id: 'g-p-param-area', topic: 'Parametric Calculus', diff: 3,
+  make(r) {
+    const m = r.int(1, 3), b = r.int(1, 2);
+    const key = `$${frac(2 * b ** (m + 2), m + 2)}$`;
+    return {
+      prompt: `Find the area under $x=t^{2}$, $y=t^{${m === 1 ? '' : m}}$ for $0\\le t\\le${b}$.`,
+      choices: [
+        { t: key, ok: true },
+        ...choose(key, [
+          { t: `$${frac(b ** (m + 1), m + 1)}$`, why: 'You integrated $y\\,dt$. Area is $\\int y\\,dx$, so multiply by $x\'(t)=2t$.', err: 'chain' },
+          { t: `$${frac(b ** (m + 2), m + 2)}$`, why: 'The factor $2$ in $x\'(t)=2t$ was dropped.' },
+          { t: `$${frac(4 * b ** (m + 2), m + 2)}$`, why: 'The factor $2$ was applied twice — $dx=2t\\,dt$ contributes it once.' },
+          { t: `$${frac(2 * b ** (m + 1), m + 1)}$`, why: 'You forgot to multiply $y$ by $t$ coming from $dx=2t\\,dt$.' },
+        ]),
+      ],
+      steps: [
+        `$A=\\displaystyle\\int y\\,dx=\\int_0^{${b}}t^{${m}}\\cdot2t\\,dt=\\int_0^{${b}}2t^{${m + 1}}dt$.`,
+        `$=\\dfrac{2t^{${m + 2}}}{${m + 2}}\\Big|_0^{${b}}=${frac(2 * b ** (m + 2), m + 2)}$.`,
+      ],
+      recall: 'Substitute $dx=x\'(t)\\,dt$ and use the $t$-limits.',
+    };
+  },
+});
+
+G.push({
+  id: 'g-p-polar-arc-eval', topic: 'Polar Area & Arc Length', diff: 3,
+  make(r) {
+    const a = r.int(1, 3);
+    const kind = r.pick(['card', 'spiral', 'circle']);
+    if (kind === 'card') {
+      const key = `$${8 * a}$`;
+      return {
+        prompt: `Find the total length of $r=${cf(a)}(1+\\cos\\theta)$.`,
+        choices: [
+          { t: key, ok: true },
+          ...choose(key, [
+            { t: `$${4 * a}$`, why: 'Half the curve ($0\\le\\theta\\le\\pi$). The cardioid closes at $2\\pi$.' },
+            { t: `$\\dfrac{${3 * a * a}\\pi}{2}$`, why: 'That is the **area**, not the length.' },
+            { t: `$${4 * a}\\pi$`, why: 'No $\\pi$ appears: $\\sqrt{2+2\\cos\\theta}=2\\cos\\frac\\theta2$ integrates to a plain multiple.' },
+            { t: `$${16 * a}$`, why: 'Doubled once too often: using symmetry is $2\\times\\int_0^\\pi$, which already totals $8a$.' },
+          ]),
+        ],
+        steps: [
+          `$r^{2}+r\'^{2}=${a * a}\\left((1+\\cos\\theta)^{2}+\\sin^{2}\\theta\\right)=${a * a}(2+2\\cos\\theta)=${4 * a * a}\\cos^{2}\\frac\\theta2$.`,
+          `$L=2\\displaystyle\\int_0^{\\pi}${2 * a}\\cos\\frac\\theta2\\,d\\theta=${4 * a}\\left[2\\sin\\frac\\theta2\\right]_0^{\\pi}=${8 * a}$.`,
+        ],
+        recall: 'Cardioid $r=a(1+\\cos\\theta)$ has length $8a$ and area $\\frac{3\\pi a^{2}}{2}$.',
+      };
+    }
+    if (kind === 'spiral') {
+      const key = a === 1 ? '$\\sqrt2$' : `$${a}\\sqrt2$`;
+      return {
+        prompt: `Find the length of $r=${cf(a)}e^{\\theta}$ for $0\\le\\theta\\le\\ln2$.`,
+        choices: [
+          { t: key, ok: true },
+          ...choose(key, [
+            { t: `$${a}$`, why: 'The factor $\\sqrt2$ comes from $r^{2}+r\'^{2}=2r^{2}$; you dropped $r\'$.' },
+            { t: `$${2 * a}\\sqrt2$`, why: `$\\int_0^{\\ln2}e^{\\theta}d\\theta=e^{\\ln2}-1=1$, not $2$.` },
+            { t: `$${cf(a)}\\sqrt2\\ln2$`, why: 'You integrated $1$; the integrand is $\\sqrt2\\,ae^{\\theta}$, whose antiderivative is itself.' },
+            { t: `$${3 * a}\\sqrt2$`, why: 'Evaluate $e^{\\theta}\\big|_0^{\\ln2}$ as upper **minus** lower: $2-1=1$.' },
+          ]),
+        ],
+        steps: [
+          `$r\'=${cf(a)}e^{\\theta}=r$, so $r^{2}+r\'^{2}=${2 * a * a}e^{2\\theta}$.`,
+          `$L=\\displaystyle\\int_0^{\\ln2}${cf(a)}\\sqrt2\\,e^{\\theta}\\,d\\theta=${cf(a)}\\sqrt2\\,(e^{\\ln2}-1)=${a === 1 ? '' : a}\\sqrt2$.`,
+        ],
+        recall: 'For $r=ae^{k\\theta}$ the radicand is a constant multiple of $e^{2k\\theta}$ — it always roots cleanly.',
+      };
+    }
+    const key = a === 1 ? '$\\pi$' : `$${a}\\pi$`;
+    return {
+      prompt: `Find the length of the circle $r=${cf(a)}\\cos\\theta$ (traced once).`,
+      choices: [
+        { t: key, ok: true },
+        ...choose(key, [
+          { t: `$${2 * a}\\pi$`, why: `Tracing for $\\theta\\in[0,2\\pi]$ goes around **twice**. The circle closes by $\\theta=\\pi$; its diameter is $${a}$, so $C=${a}\\pi$.` },
+          { t: `$${cf(a)}\\pi^{2}$`, why: 'Length integrand is $\\sqrt{r^{2}+r\'^{2}}=' + a + '$, a constant; integrating over $[0,\\pi]$ gives $' + a + '\\pi$.' },
+          { t: `$\\dfrac{${cf(a)}\\pi}{2}$`, why: 'Half the circle: the range $[0,\\frac\\pi2]$ is not the whole trace.' },
+          { t: `$${a * a}\\pi$`, why: 'The circumference is $\\pi\\times$ diameter, linear in $a$ — squaring is for area.' },
+        ]),
+      ],
+      steps: [
+        `$r\'=-${cf(a)}\\sin\\theta$, so $r^{2}+r\'^{2}=${a * a}$.`,
+        `$L=\\displaystyle\\int_0^{\\pi}${a}\\,d\\theta=${a === 1 ? '' : a}\\pi$.`,
+        `Check: diameter $${a}$ gives circumference $\\pi\\cdot${a}$. ✓`,
+      ],
+      recall: 'Always find the trace range first: $r=a\\cos\\theta$ finishes in $\\pi$, not $2\\pi$.',
+    };
+  },
+});
+
 export const polar = { unit: 'polar', problems: P, generators: G };
