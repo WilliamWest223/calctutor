@@ -13,6 +13,8 @@ import { exams } from './exams.js';
 import { checkins } from './checkins.js';
 import { taylor } from './taylor.js';
 import { wide } from './wide.js';
+import { mockExam3 } from './mock3.js';
+import { mockFinal } from './mockf.js';
 
 export const UNITS = [
   {
@@ -79,7 +81,7 @@ export const unitOfSkill = s => s.split('/')[0];
 export const topicOfSkill = s => s.split('/').slice(1).join('/');
 
 // ---- registry ---------------------------------------------------
-const SOURCES = [precalc, foundations, techniques, applications, diffeq, seriesUnit, polar, exams, checkins, taylor, wide];
+const SOURCES = [precalc, foundations, techniques, applications, diffeq, seriesUnit, polar, exams, checkins, taylor, wide, mockExam3, mockFinal];
 
 export const STATIC = [];
 export const GENS = [];
