@@ -5,6 +5,7 @@ import { candidates, materialize, LIVE_SKILLS, liveSkillsOf, UNITS } from './ban
 import { EXAMS, GATEWAYS, examById, gatewayById, coveredSkills, OFF_SYLLABUS } from './bank/course.js';
 import * as store from './store.js';
 import { rand, hash } from './util.js';
+import { isCheckable } from './mathcheck.js';
 
 export const MODES = {
   rapid: {
@@ -53,6 +54,10 @@ export const MODES = {
     defer: true,
     blurb: 'Timed, no feedback until the end, scoped to one of his real exams.',
   },
+  lesson: {
+    key: 'lesson', name: 'Lesson Practice', glyph: '☰', accent: 'lime', count: 14, timed: false,
+    blurb: 'This lesson\u2019s own practice ladder, in order, warm-up to exam level.',
+  },
   gateway: {
     key: 'gateway', name: 'Gateway', glyph: '⊘', accent: 'violet', count: 20, timed: true, secs: 90,
     blurb: 'The 30-minute mastery check. Fast and mechanical — exactly what a Gateway is.',
@@ -60,9 +65,12 @@ export const MODES = {
 };
 
 /** Weighted pick without replacement bias — returns a skill key. */
-function pickSkill(skills, recent) {
-  const live = skills.filter(s => LIVE_SKILLS.includes(s));
+function pickSkill(skills, recent, ctx) {
+  let live = skills.filter(s => LIVE_SKILLS.includes(s));
   if (!live.length) return null;
+  // strict no-repeat: only skills with an unseen template, while any remain
+  const open = live.filter(s => candidates([s]).some(c => !ctx.keys.has(c.gid || c.id)));
+  if (open.length) live = open;
   const ws = live.map(s => {
     let w = store.weight(s);
     const back = recent.lastIndexOf(s);
@@ -81,7 +89,7 @@ function pickSkill(skills, recent) {
 export const DIFF_BAND = { easy: [1, 2], medium: [2, 3], hard: [3, 4, 5], all: [1, 2, 3, 4, 5] };
 
 /** Turn a skill into a concrete problem reference, honouring the difficulty filter. */
-function refFor(skillKey, used, salt, opts = {}) {
+function refFor(skillKey, used, salt, opts = {}, ctx) {
   const all = candidates([skillKey]);
   if (!all.length) return null;
   let pool = all;
@@ -103,25 +111,89 @@ function refFor(skillKey, used, salt, opts = {}) {
   let src = pool.filter(c => c.gen || !used.has(c.id));
   if (!src.length) src = all.filter(c => c.gen || !used.has(c.id));
   if (!src.length) src = pool;
-  // favour generators — they never run out
-  const gens = src.filter(c => c.gen);
-  const pick = gens.length && rand() < 0.68 ? gens[Math.floor(rand() * gens.length)]
-    : src[Math.floor(rand() * src.length)];
+  // never narrow to templates already served this session while others exist
+  const fresh = src.filter(c => !ctx.keys.has(c.gid || c.id));
+  if (fresh.length) src = fresh;
+  else { const f2 = all.filter(c => !ctx.keys.has(c.gid || c.id)); if (f2.length) src = f2; }
 
-  if (pick.gen) {
-    // A generator with 100 variants still draws a duplicate roughly half the
-    // time over a 12-question session — the birthday problem, and exactly what
-    // "I keep seeing the same question" feels like. Re-roll the seed instead.
-    for (let attempt = 0; attempt < 12; attempt++) {
-      const ref = { gid: pick.gid, seed: (hash(pick.gid + ':' + salt + ':' + attempt + ':' + rand()) >>> 0) };
-      const made = materialize(ref);
-      if (!made) return ref;
-      if (!used.has(made.prompt)) { used.add(made.prompt); return ref; }
-    }
-    return { gid: pick.gid, seed: (hash(pick.gid + ':' + salt + ':' + rand()) >>> 0) };
+  // Novelty weighting: templates served recently (this session or earlier
+  // sessions) are down-weighted; unseen written items get a small boost.
+  const rc = k => store.recent().filter(r => r.k === k).length;
+  // templates whose arch is shared by other unseen ones go first, so same-arch
+  // twins get spread apart instead of colliding at the tail of the session
+  const archOf = new Map();
+  for (const c of all) { const m = materialize(c.gid ? { gid: c.gid, seed: 1 } : { id: c.id }); archOf.set(c, m && m.arch); }
+  const unseen = all.filter(c => !ctx.keys.has(c.gid || c.id));
+  const twins = c => { const a = archOf.get(c); return a ? unseen.filter(o => archOf.get(o) === a).length : 1; };
+  const weigh = c => {
+    const k = c.gid || c.id;
+    let w = twins(c) ** 6 / (1 + rc(k));
+    if (ctx.keys.has(k)) w *= 0.03;
+    if (!c.gen) w *= 1.5;
+    return w;
+  };
+  let tried = new Set();
+  const choose = () => {                       // weighted, without replacement until src is exhausted
+    const left = src.filter(c => !tried.has(c));
+    const from = left.length ? left : src;
+    const ws = from.map(weigh);
+    let t = rand() * ws.reduce((x, y) => x + y, 0);
+    let pick = from[from.length - 1];
+    for (let i = 0; i < from.length; i++) { t -= ws[i]; if (t <= 0) { pick = from[i]; break; } }
+    tried.add(pick);
+    return pick;
+  };
+
+  // Try a few candidates; score conflicts (arch within last 4, fmt 3 in a
+  // row, duplicate prompt) and keep the best. shortcut: max(8, 2*templates) tries x 3 seeds,
+  // upgrade if a very thin topic still shows repeats.
+  let best = null;
+  for (let pass = 0; pass < 2 && (!best || best.score > 0); pass++) {
+  if (pass) {           // difficulty band left only clashing options: widen to every unseen template
+    let wide = all.filter(c => !ctx.keys.has(c.gid || c.id));
+    if (!wide.length) wide = all;
+    if (wide.length <= src.length) break;
+    src = wide; tried = new Set();
   }
-  used.add(pick.id);
-  return { id: pick.id };
+  for (let attempt = 0; attempt < Math.max(8, 2 * src.length) && (!best || best.score > 0); attempt++) {
+    const pick = choose();
+    const k = pick.gid || pick.id;
+    for (let j = 0; j < (pick.gen ? 3 : 1); j++) {
+      const ref = pick.gen
+        ? { gid: pick.gid, seed: (hash(pick.gid + ':' + salt + ':' + attempt + ':' + j + ':' + rand()) >>> 0) }
+        : { id: pick.id };
+      const made = materialize(ref);
+      if (!made) { if (!best) best = { ref, score: 9, k, arch: '', fmt: 'mc' }; continue; }
+      let fmt = made.fmt || (made.tf ? 'tf' : 'mc');
+      if (fmt === 'mc' && !made.tf && ctx.freeShare > 0 && isCheckable(made.choices) && rand() < ctx.freeShare) { ref.free = true; fmt = 'free'; }
+      let score = 0;
+      if (used.has(made.prompt)) score += 4;
+      if (made.arch && ctx.archs.slice(-4).includes(made.arch)) score += 2;
+      if (ctx.fmts.length >= 2 && ctx.fmts.slice(-2).every(f => f === fmt)) score += 1;
+      if (ctx.keys.has(k)) score += 3;
+      if (!best || score < best.score) best = { ref, score, k, arch: made.arch || '', fmt, prompt: made.prompt };
+      if (score === 0) break;
+    }
+  }
+  }
+  // deterministic fallback: arch clash but an unseen template has a fresh arch
+  if (best && best.arch && ctx.archs.slice(-4).includes(best.arch)) {
+    const recent = ctx.archs.slice(-4);
+    for (const alt of unseen) {
+      for (let i = 1; i <= 15; i++) {
+        const ref = alt.gen ? { gid: alt.gid, seed: i * 7919 } : { id: alt.id };
+        const made = materialize(ref);
+        if (!made || !made.arch || recent.includes(made.arch)) continue;
+        best = { ref, score: 0, k: alt.gid || alt.id, arch: made.arch, fmt: made.fmt || (made.tf ? 'tf' : 'mc'), prompt: made.prompt };
+        break;
+      }
+      if (best.score === 0) break;
+    }
+  }
+  if (!best) return null;
+  used.add(best.prompt || best.k);
+  ctx.keys.add(best.k); if (best.arch) ctx.archs.push(best.arch); ctx.fmts.push(best.fmt);
+  return best.ref;
 }
 
 /** Skills for a given mode/scope. */
@@ -148,13 +220,14 @@ export function scopeSkills(mode, scope) {
   return SYLLABUS_SKILLS;
 }
 
-export function build({ mode, scope, count, difficulty, adaptive, refs }) {
+export function build({ mode, scope, count, difficulty, adaptive, refs, freeShare }) {
   const cfg = MODES[mode];
   const st = store.settings();
   const n = count || cfg.count || st.length;
   const opts = {
     difficulty: difficulty || st.difficulty || 'all',
     adaptive: adaptive != null ? adaptive : st.adaptive,
+    freeShare: freeShare != null ? freeShare : (st.freeShare ?? 0.3),
   };
   const queue = [];
 
@@ -171,6 +244,7 @@ export function build({ mode, scope, count, difficulty, adaptive, refs }) {
 
   const skills = scopeSkills(mode, scope);
   const used = new Set();
+  const ctx = { keys: new Set(), archs: [], fmts: [], freeShare: opts.freeShare };
   const recent = [];
 
   if (mode === 'cram') {
@@ -181,12 +255,12 @@ export function build({ mode, scope, count, difficulty, adaptive, refs }) {
       .sort((a, b) => (b.due - a.due) || (b.w - a.w));
     for (const { s } of ranked) {
       if (queue.length >= n) break;
-      const ref = refFor(s, used, `cram${queue.length}`, { ...opts, adaptive: false, difficulty: 'hard' });
+      const ref = refFor(s, used, `cram${queue.length}`, { ...opts, adaptive: false, difficulty: 'hard' }, ctx);
       if (ref) { queue.push(ref); recent.push(s); }
     }
     while (queue.length < n) {
-      const sk = pickSkill(skills, recent);
-      const ref = sk && refFor(sk, used, `cram${queue.length}`, opts);
+      const sk = pickSkill(skills, recent, ctx);
+      const ref = sk && refFor(sk, used, `cram${queue.length}`, opts, ctx);
       if (!ref) break;
       queue.push(ref); recent.push(sk);
     }
@@ -201,14 +275,14 @@ export function build({ mode, scope, count, difficulty, adaptive, refs }) {
     for (const u of units) {
       const us = liveSkillsOf(u.key).filter(s => inScope.has(s));
       for (let i = 0; i < perUnit && us.length; i++) {
-        const sk = pickSkill(us, recent);
-        const ref = sk && refFor(sk, used, `${mode}${i}${u.key}`, opts);
+        const sk = pickSkill(us, recent, ctx);
+        const ref = sk && refFor(sk, used, `${mode}${i}${u.key}`, opts, ctx);
         if (ref) { queue.push(ref); recent.push(sk); }
       }
     }
     while (queue.length < n) {
-      const sk = pickSkill(skills, recent);
-      const ref = sk && refFor(sk, used, `${mode}${queue.length}`, opts);
+      const sk = pickSkill(skills, recent, ctx);
+      const ref = sk && refFor(sk, used, `${mode}${queue.length}`, opts, ctx);
       if (!ref) break;
       queue.push(ref); recent.push(sk);
     }
@@ -222,12 +296,12 @@ export function build({ mode, scope, count, difficulty, adaptive, refs }) {
     for (let i = 0; i < n; i++) {
       let sk = null;
       for (let tries = 0; tries < 6; tries++) {
-        const c = pickSkill(skills, recent);
+        const c = pickSkill(skills, recent, ctx);
         if (!c) break;
         if (c.split('/')[0] !== lastUnit) { sk = c; break; }
         sk = c;
       }
-      const ref = sk && refFor(sk, used, `${mode}${i}`, opts);
+      const ref = sk && refFor(sk, used, `${mode}${i}`, opts, ctx);
       if (!ref) break;
       queue.push(ref); recent.push(sk); lastUnit = sk.split('/')[0];
       if (recent.length > 6) recent.shift();
@@ -236,8 +310,8 @@ export function build({ mode, scope, count, difficulty, adaptive, refs }) {
   }
 
   for (let i = 0; i < n; i++) {
-    const sk = pickSkill(skills, recent);
-    const ref = sk && refFor(sk, used, `${mode}${i}`, opts);
+    const sk = pickSkill(skills, recent, ctx);
+    const ref = sk && refFor(sk, used, `${mode}${i}`, opts, ctx);
     if (!ref) break;
     queue.push(ref); recent.push(sk);
     if (recent.length > 5) recent.shift();
@@ -265,6 +339,7 @@ function session(cfg, queue, scope, opts) {
 export function currentProblem(S) {
   while (S.idx < S.queue.length) {
     const p = materialize(S.queue[S.idx]);
+    if (p && S.queue[S.idx].free && !p.fmt) p.fmt = 'free';
     if (p && p.choices.length >= 2) { S.current = p; return p; }
     S.queue.splice(S.idx, 1);
   }
@@ -273,12 +348,21 @@ export function currentProblem(S) {
 }
 
 export function grade(S, p, choiceIdx, ms, hinted) {
-  const chosen = p.choices[choiceIdx];
-  const correct = !!(chosen && chosen.ok);
+  let correct, chosen;
+  if (Array.isArray(choiceIdx)) {            // multi: exact set match
+    const keys = p.choices.map((c, i) => (c.ok ? i : -1)).filter(i => i >= 0);
+    correct = keys.length === choiceIdx.length && keys.every(i => choiceIdx.includes(i));
+    choiceIdx = correct ? keys[0] : (choiceIdx.find(i => !p.choices[i].ok) ?? keys.find(i => !choiceIdx.includes(i)) ?? -1);
+    chosen = p.choices[choiceIdx];
+  } else {
+    chosen = p.choices[choiceIdx];
+    correct = !!(chosen && chosen.ok);
+  }
+  if (S.lessonId && p.ref && p.ref.id) store.recordLadder(S.lessonId, p.ref.id, correct);
   if (correct) { S.run++; S.bestRun = Math.max(S.bestRun, S.run); store.bumpBest(S.run); }
   else S.run = 0;
   store.record(p.skill, correct, ms, p.ref, p.prompt, chosen);
-  S.results.push({ ref: p.ref, skill: p.skill, prompt: p.prompt, correct, ms, chosen: choiceIdx, hinted: !!hinted });
+  S.results.push({ ref: p.ref, skill: p.skill, prompt: p.prompt, correct, ms, chosen: choiceIdx, hinted: !!hinted, arch: p.arch || "" });
   return correct;
 }
 
@@ -301,6 +385,10 @@ export function finish(S) {
     bankEmptied: S.cfg.key === 'mistakes' && S.bankStart >= 10 && store.missed().length === 0,
   });
 
+  // record served templates once; endSession's save persists them
+  const rec = store.recent();
+  for (const r of S.results) rec.push({ k: r.ref.gid || r.ref.id, a: r.arch || "" });
+  if (rec.length > 60) rec.splice(0, rec.length - 60);
   const unlocked = store.endSession(S.cfg.key, S.results.length, right, secs);
   return { right, n: S.results.length, secs, unlocked };
 }

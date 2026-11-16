@@ -7,6 +7,8 @@ import { UNITS, liveSkillsOf, LIVE_SKILLS, topicOfSkill, unitOfSkill, countsFor,
 import { primerFor } from './bank/primers.js';
 import { COURSE, EXAMS, GATEWAYS, courseToday, nextAssessment, coveredSkills, OFF_SYLLABUS, LIGHT_COVERAGE } from './bank/course.js';
 import { LESSONS } from './bank/lessons.js';
+import { lessonsForExam, lessonForSkill, lessonLink } from './lessonmap.js';
+import { materialize } from './bank/index.js';
 import * as store from './store.js';
 import { MODES } from './session.js';
 import { build as buildViz } from './viz.js';
@@ -88,6 +90,25 @@ export function home() {
         onclick: e => { e.stopPropagation(); nav({ v: 'drill', mode: 'examscope', scope: na.id }); },
       }, `Practise ${na.name} →`),
     ));
+  }
+
+  // ---- exam hub: next exam, its lessons in order, drill + mocks
+  if (na && na.kind === 'exam') {
+    const ls = lessonsForExam(na.id);
+    const firstOpen = ls.find(l => !store.lessonDone(l.id));
+    const mockRefs = pre => { const r = []; for (let i = 1; i < 30 && materialize({ id: `${pre}-q${i}` }); i++) r.push({ id: `${pre}-q${i}` }); return r; };
+    const mocks = (na.id === 3 ? ['m3a', 'm3b'] : na.id === 0 ? ['mfa', 'mfb'] : [])
+      .map((p, i) => ({ label: `Mock ${'AB'[i]}`, refs: mockRefs(p) })).filter(m => m.refs.length);
+    wrap.appendChild(h('div.panel.examhub',
+      h('div.eyebrow', `${na.name} hub · ${plural(na.days, 'day')} left`),
+      h('div.hubles', ...ls.map(l => h('span.planchip' + (store.lessonDone(l.id) ? '.done' : ''),
+        { onclick: () => nav({ v: 'lesson', id: l.id }) }, `${l.n}. ${l.title}`))),
+      h('div.dim', { style: { fontSize: '12.5px', margin: '4px 0 8px' } },
+        `${ls.filter(l => store.lessonDone(l.id)).length} of ${ls.length} lessons finished`),
+      h('div.row',
+        firstOpen && h('button.btn.sm.primary', { onclick: () => nav({ v: 'lesson', id: firstOpen.id }) }, `Continue: ${firstOpen.title} →`),
+        h('button.btn.sm' + (firstOpen ? '' : '.primary'), { onclick: () => nav({ v: 'drill', mode: 'examscope', scope: na.id }) }, `Drill ${na.name}`),
+        ...mocks.map(m => h('button.btn.sm', { onclick: () => nav({ v: 'drill', mode: 'custom', refs: m.refs, skills: [] }) }, m.label)))));
   }
 
   // ---- the learn program, and what the course has already covered
@@ -182,6 +203,9 @@ export function home() {
     pillGroup([['all', 'all levels'], ['easy', 'easy'], ['medium', 'medium'], ['hard', 'hard']].map(([v, l]) => ({
       label: l, on: sset.difficulty === v, fn: () => { store.setSetting('difficulty', v); nav({ v: 'home' }); },
     })), 'difficulty'),
+    pillGroup([[0, 'off'], [0.3, 'some'], [0.6, 'most']].map(([v, l]) => ({
+      label: 'exam style: ' + l, on: (sset.freeShare ?? 0.3) === v, fn: () => { store.setSetting('freeShare', v); nav({ v: 'home' }); },
+    })), 'exam style'),
     h('label.toggle', { title: 'Aim questions at your current mastery level' },
       h('input', { type: 'checkbox', checked: sset.adaptive || null, onchange: e => store.setSetting('adaptive', e.target.checked) }),
       h('span', 'adaptive')),
@@ -318,6 +342,7 @@ export function primer(skillKey, onDrill) {
 
   wrap.appendChild(h('div.row', { style: { marginTop: '20px' } },
     h('button.btn.primary', { onclick: onDrill }, 'Drill this topic  →'),
+    lessonForSkill(skillKey) && h('button.btn', { onclick: () => nav({ v: 'lesson', id: lessonForSkill(skillKey).id }) }, '📖 Lesson'),
     h('button.btn.ghost', { onclick: () => nav({ v: 'home' }) }, 'Back'),
   ));
   return wrap;
@@ -339,6 +364,7 @@ export function drill(S, handlers) {
     h('span.topictag', { title: 'Open the primer for this topic', onclick: () => nav({ v: 'primer', scope: p.skill }) }, topicOfSkill(p.skill)),
     h('span.qcount', `${Math.min(done + 1, total)} / ${total}`),
     h('span.diffdot', { title: `difficulty ${p.diff || 2} of 3` }, '●'.repeat(p.diff || 2)),
+    !cfg.defer && lessonLink(p.skill),
     h('span.flex'),
     cfg.defer && h('span.qcount', 'feedback withheld until the end'),
     h('button.iconbtn.star' + (starred ? '.on' : ''), {
@@ -357,13 +383,20 @@ export function drill(S, handlers) {
   card.appendChild(h('div.qtext', { html: tex(p.prompt) }));
   if (p.sub) card.appendChild(h('div.qsub', { html: tex(p.sub) }));
 
+  if (p.fmt === 'error' && p.work && p.work.length) {
+    card.appendChild(h('div.worklines',
+      ...p.work.map((w, i) => h('div', { html: tex(`${i + 1}.  ${w}`) }))));
+  }
+  const fmt = p.fmt || 'mc';
   const hintBox = h('div#hintbox');
   card.appendChild(hintBox);
 
-  const choices = h('div.choices');
+  const choices = h('div.choices', fmt === 'free' ? { style: { display: 'none' } } : {});
+  const sel = new Set();
   p.choices.forEach((c, i) => {
-    choices.appendChild(h('button.choice', {
-      'data-i': i, onclick: () => handlers.answer(i),
+    choices.appendChild(h('button.choice' + (fmt === 'multi' ? '.multi' : ''), {
+      'data-i': i,
+      onclick: ev => (fmt === 'multi' ? toggle(i, ev.currentTarget) : handlers.answer(i)),
       style: { animationDelay: `${i * 40}ms` },
     },
       h('span.key', KEYCAPS[i]),
@@ -371,6 +404,16 @@ export function drill(S, handlers) {
     ));
   });
   card.appendChild(choices);
+  function toggle(i, btn) {
+    btn = btn || choices.children[i];
+    if (sel.has(i)) sel.delete(i); else sel.add(i);
+    btn.classList.toggle('selected', sel.has(i));
+  }
+  if (fmt === 'multi') {
+    card.appendChild(h('div.row', { style: { marginTop: '10px' } },
+      h('span.dim', 'Select ALL that apply.'),
+      h('button.btn.sm.primary', { onclick: () => handlers.answer('submit') }, 'Submit  ⏎')));
+  }
 
   // ---- the fifth option: write your own answer
   const mathy = isCheckable(p.choices);
@@ -446,7 +489,8 @@ export function drill(S, handlers) {
   });
   // A true/false question has nothing to write in — typing "true" is strictly
   // worse than pressing 1, and an empty box invites a wasted keystroke.
-  if (!p.tf) card.appendChild(own);
+  const noOwn = p.tf || fmt === 'multi' || fmt === 'error';
+  if (!noOwn) card.appendChild(own);
 
   root.appendChild(card);
 
@@ -455,15 +499,15 @@ export function drill(S, handlers) {
 
   const hintsOn = store.settings().hints && !cfg.defer;
   root.appendChild(h('div.footbar',
-    h('span.hintk', { html: `<b>1–${p.choices.length}</b> answer&nbsp; ·&nbsp; `
-      + (p.tf ? '' : `<b>${p.choices.length + 1}</b> write your own&nbsp; ·&nbsp; `)
+    h('span.hintk', { html: (fmt === 'free' ? '' : `<b>1–${p.choices.length}</b> ${fmt === 'multi' ? 'toggle' : 'answer'}&nbsp; ·&nbsp; `)
+      + (noOwn || fmt === 'free' ? '' : `<b>${p.choices.length + 1}</b> write your own&nbsp; ·&nbsp; `)
       + `<b>Enter</b> continue&nbsp; ·&nbsp; <b>C</b> cheat sheet&nbsp; ·&nbsp; <b>S</b> star` }),
     h('span.flex'),
     hintsOn && h('button.btn.sm', { id: 'hintbtn', onclick: handlers.hint }, 'Hint  (H)'),
     h('span.hintk', { html: `<b>${cfg.name}</b>` }),
   ));
 
-  return { root, choices, fb, timer, card, hintBox, entry, entryMsg, own };
+  return { root, choices, fb, timer, card, hintBox, entry, entryMsg, own, toggle: i => toggle(i), picked: () => [...sel].sort() };
 }
 
 /** Inline message under the write-in box (bad syntax, not gradeable, …). */
@@ -518,11 +562,17 @@ export function reveal(view, p, chosenIdx, correct, handlers) {
     if (typed) view.own.classList.add(correct ? 'correct' : 'wrong');
     clear(view.entryMsg);
   }
+  view.choices.style.display = '';
+  const picked = handlers && handlers.picked;
   const btns = [...view.choices.querySelectorAll('.choice')];
   btns.forEach((b, i) => {
     b.classList.add('locked');
     b.disabled = true;
-    if (p.choices[i].ok) {
+    if (picked) {
+      const on = picked.includes(i), ok = p.choices[i].ok;
+      b.classList.add(ok ? 'correct' : on ? 'wrong' : 'faded');
+      b.appendChild(h('span.verdict', ok ? (on ? 'correct' : 'you missed this') : on ? 'your pick' : ''));
+    } else if (p.choices[i].ok) {
       b.classList.add('correct');
       b.appendChild(h('span.verdict', 'correct'));
     } else if (i === chosenIdx) {
@@ -555,7 +605,10 @@ export function reveal(view, p, chosenIdx, correct, handlers) {
   }
 
   // 1. why THIS answer was wrong — the most valuable panel
-  if (!correct && chosen && chosen.why) {
+  if (picked) {
+    fb.appendChild(h('div.panel.diag', h('div.eyebrow', 'Each option'),
+      ...p.choices.map(c => h('div', { style: { margin: '4px 0' }, html: tex(`${c.ok ? '✓' : '✗'} ${c.t} — ${c.why || ''}`) }))));
+  } else if (!correct && chosen && chosen.why) {
     const et = store.errorTypeOf(chosen);
     fb.appendChild(h('div.panel.diag',
       h('div.eyebrow', 'Why that option is wrong',
@@ -706,7 +759,9 @@ export function summary(S, stats, handlers) {
   }
 
   wrap.appendChild(h('div.row', { style: { marginTop: '26px' } },
-    h('button.btn.primary', { onclick: handlers.again }, 'Run it again'),
+    handlers.lesson ? h('button.btn.primary', { onclick: handlers.lesson }, '← Back to lesson') : null,
+    handlers.nextLesson ? h('button.btn.primary', { onclick: handlers.nextLesson.go }, `Next lesson: ${handlers.nextLesson.title} →`) : null,
+    h('button.btn' + (handlers.lesson ? '' : '.primary'), { onclick: handlers.again }, 'Run it again'),
     store.missed().length ? h('button.btn', { onclick: handlers.mistakes }, `Drill mistake bank (${store.missed().length})`) : null,
     h('button.btn.ghost', { onclick: handlers.home }, 'Home'),
   ));

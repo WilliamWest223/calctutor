@@ -12,6 +12,7 @@ import { LESSONS, lessonById, byWeek } from './bank/lessons.js';
 import * as store from './store.js';
 import { MODES } from './session.js';
 import { statbox } from './ui.js';
+import { examOfLesson } from './lessonmap.js';
 
 let nav = () => {};
 export function setNav(fn) { nav = fn; }
@@ -708,19 +709,33 @@ export function learn() {
     h('div.dim', { style: { fontSize: '12.5px', marginTop: '6px' } },
       `${done.length} of ${LESSONS.length} lessons finished · a lesson counts as finished once you have read it and drilled it at least once`)));
 
-  // ---- the full program, week by week
-  wrap.appendChild(h('div.sechead', h('h2', 'The semester'), h('div.line'),
-    h('span.dimmer', { style: { fontSize: '12px' } }, 'dated from the syllabus')));
-
-  for (const [monday, list] of byWeek()) {
-    const isNow = list.some(l => lessonStatus(l, today) === 'current');
-    const wk = h('div.weekblock' + (isNow ? '.is-now' : ''));
-    wk.appendChild(h('div.weekhead',
-      h('span.weekdate', `Week of ${fmtDay(monday)}`),
-      isNow ? h('span.weeknow', 'this week') : null));
-    for (const l of list) wk.appendChild(lessonRow(l, today));
-    wrap.appendChild(wk);
+  // ---- the full program, grouped by exam, with a filter box
+  const filt = h('input.lfilter', { type: 'search', placeholder: 'Filter lessons (title, topic)…' });
+  wrap.appendChild(h('div.sechead', h('h2', 'The semester'), h('div.line'), filt));
+  const groups = h('div');
+  const rows = [];
+  for (const e of [...EXAMS].sort((x, y) => (x.id || 99) - (y.id || 99))) {
+    const list = LESSONS.filter(l => examOfLesson(l) === e.id);
+    if (!list.length) continue;
+    const box = h('div.weekblock');
+    box.appendChild(h('div.weekhead', h('span.weekdate', `${e.name} · ${fmtDay(e.date)}`),
+      h('span.flex'),
+      h('button.btn.sm.ghost', { onclick: () => nav({ v: 'drill', mode: 'examscope', scope: e.id }) }, 'Practise →')));
+    for (const l of list) {
+      const row = lessonRow(l, today);
+      rows.push({ row, box, text: (l.title + ' ' + (l.drill || []).join(' ')).toLowerCase() });
+      box.appendChild(row);
+    }
+    groups.appendChild(box);
   }
+  wrap.appendChild(groups);
+  filt.addEventListener('input', () => {
+    const q = filt.value.trim().toLowerCase();
+    rows.forEach(r => { r.row.style.display = !q || r.text.includes(q) ? '' : 'none'; });
+    groups.querySelectorAll('.weekblock').forEach(b => {
+      b.style.display = [...b.querySelectorAll('.lrow')].some(r => r.style.display !== 'none') ? '' : 'none';
+    });
+  });
   return wrap;
 }
 
@@ -728,13 +743,15 @@ function lessonRow(l, today) {
   const st = lessonStatus(l, today);
   const u = UNIT_BY_KEY[l.unit];
   const rec = store.lesson(l.id);
+  const lad = store.ladderStats(l.id);
   return h('div.lrow.is-' + st, { onclick: () => nav({ v: 'lesson', id: l.id }) },
     h('span.lnum', l.kind === 'exam' ? '⚑' : String(l.n)),
     h('div.lmain',
       h('div.ltitle', l.title),
       h('div.lmeta', `${l.dates.map(fmtDay).join(' · ')}${u ? '  —  ' + u.name : ''}`)),
     h('span.flex'),
-    rec.read ? h('span.ltag.read', rec.drilled ? '✓ done' : 'read') : null,
+    lad.n ? h('span.ltag.' + (store.lessonDone(l.id) ? 'read' : 'now'), `${lad.right}/${lad.n}`) : null,
+    !lad.n && rec.read ? h('span.ltag.read', rec.drilled ? '✓ done' : 'read') : null,
     st === 'behind' && !rec.read ? h('span.ltag.behind', 'behind') : null,
     st === 'current' && !rec.read ? h('span.ltag.now', 'now') : null);
 }
@@ -760,6 +777,20 @@ export function lesson(id) {
     h('h1', l.title),
     h('p.lgoal', { html: tex(l.goal) })));
 
+  const skills = (l.drill || []).filter(s => LIVE_SKILLS.includes(s));
+  const prev = LESSONS[idx - 1], next = LESSONS[idx + 1];
+  if (l.plain) return wrap.appendChild(rewrittenBody(l, wrap, skills, prev, next)) && wrap;
+  wrap.appendChild(h('div.lbar',
+    h('button.btn.sm.primary', {
+      onclick: () => { store.markLessonDrilled(l.id); nav({ v: 'drill', mode: 'custom', skills }); },
+    }, 'Drill this lesson'),
+    h('button.btn.sm', {
+      onclick: () => { store.markLessonDrilled(l.id); nav({ v: 'drill', mode: 'custom', skills, freeShare: 0.6 }); },
+    }, 'Exam-style set'),
+    h('span.flex'),
+    prev && h('button.btn.sm.ghost', { onclick: () => nav({ v: 'lesson', id: prev.id }) }, '← Prev'),
+    next && h('button.btn.sm.ghost', { onclick: () => nav({ v: 'lesson', id: next.id }) }, 'Next →')));
+
   wrap.appendChild(h('div.panel.recall',
     h('div.eyebrow', 'Why this matters'),
     h('div', { html: tex(l.why) })));
@@ -782,6 +813,12 @@ export function lesson(id) {
     wrap.appendChild(box);
   }
 
+  if (Array.isArray(l.exam) && l.exam.length) {
+    wrap.appendChild(h('div.panel',
+      h('div.eyebrow', 'Exam patterns'),
+      ...l.exam.map(t => h('div.lpara', { html: tex(t) }))));
+  }
+
   if (l.traps && l.traps.length) {
     wrap.appendChild(h('div.panel.diag',
       h('div.eyebrow', 'Where people lose the marks'),
@@ -800,7 +837,6 @@ export function lesson(id) {
         'The true/false claims he actually opened these lectures with.')));
   }
 
-  const skills = (l.drill || []).filter(s => LIVE_SKILLS.includes(s));
   wrap.appendChild(h('div.panel.lfinish',
     h('div.eyebrow', 'Now drill it'),
     h('div.planitems', ...skills.map(sk =>
@@ -809,8 +845,86 @@ export function lesson(id) {
       h('button.btn.primary', {
         onclick: () => { store.markLessonDrilled(l.id); nav({ v: 'drill', mode: 'custom', skills }); },
       }, `Drill this lesson (${plural(skills.length, 'topic')})`),
-      LESSONS[idx + 1] ? h('button.btn.sm.ghost', { onclick: () => nav({ v: 'lesson', id: LESSONS[idx + 1].id }) },
-        `Next: ${LESSONS[idx + 1].title} →`) : null)));
+      next ? h('button.btn.sm.ghost', { onclick: () => nav({ v: 'lesson', id: next.id }) },
+        `Next: ${next.title} →`) : null)));
 
   return wrap;
+}
+
+// A rewritten lesson (has .plain): ground-up teaching page + fixed practice ladder.
+function rewrittenBody(l, wrap, skills, prev, next) {
+  const para = t => String(t).split('\n\n').map(x => h('div.lpara', { html: tex(x) }));
+  const panel = (title, ...kids) => h('div.panel', h('div.eyebrow', { html: tex(title) }), ...kids);
+  const frag = h('div.lrewrite');
+  if (l.why) frag.appendChild(h('div.lwhy', { html: tex(l.why) }));
+  frag.appendChild(panel('The big idea in plain English', ...para(l.plain)));
+  if ((l.prereq || []).length) {
+    frag.appendChild(panel('Words you need first',
+      ...l.prereq.map(p => h('div.lterm', h('b', { html: tex(p.term) }), h('span', { html: ' — ' + tex(p.means) })))));
+  }
+  (l.sections || []).forEach((sec, i) => {
+    const box = panel(`${i + 1}. ${sec.h}`, ...para(sec.body));
+    if (sec.check) {
+      box.appendChild(h('details.lcheck',
+        h('summary', { html: '<b>Check yourself:</b> ' + tex(sec.check.q) }),
+        h('div.lans', { html: tex(sec.check.a) })));
+    }
+    frag.appendChild(box);
+  });
+  if ((l.recipe || []).length) {
+    frag.appendChild(h('div.panel.recipebox',
+      h('div.eyebrow', 'The method step by step'),
+      h('div.steps', ...l.recipe.map((t, i) => h('div.step', h('span.num', String(i + 1)), h('span.txt', { html: tex(t) }))))));
+  }
+  for (const w of l.worked || []) {
+    const steps = h('div.steps');
+    w.steps.forEach((t, i) => steps.appendChild(h('div.step' + (i === w.steps.length - 1 ? '.key' : ''),
+      h('span.num', String(i + 1)), h('span.txt', { html: tex(t) }))));
+    frag.appendChild(h('div.panel.worked', h('div.eyebrow', 'Worked example'), h('div.lq', { html: tex(w.q) }), steps,
+      w.note ? h('div.lnote', { html: tex(w.note) }) : null));
+  }
+  if ((l.exam || []).length) frag.appendChild(panel('Exam patterns', ...l.exam.map(t => h('div.lpara', { html: tex(t) }))));
+  if ((l.traps || []).length) {
+    frag.appendChild(h('div.panel.diag', h('div.eyebrow', 'Where people lose the marks'),
+      ...l.traps.map(t => h('div.ltrap', h('span.tdot', '✕'), h('span', { html: tex(t) })))));
+  }
+  const cis = (l.checkins || []).filter(c => materialize({ id: c }));
+  if (cis.length) {
+    frag.appendChild(h('div.panel',
+      h('div.row', h('div.eyebrow', `His check-ins for this material (${cis.length})`), h('span.flex'),
+        h('button.btn.sm', { onclick: () => nav({ v: 'drill', mode: 'custom', refs: cis.map(id => ({ id })) }) }, 'Drill these →')),
+      h('div.dim', { style: { fontSize: '13px', marginTop: '6px' } }, 'The true/false claims he actually opened these lectures with.')));
+  }
+
+  // ---- practice ladder
+  const st = store.ladderStats(l.id);
+  const items = (l.practice || []).filter(p => materialize({ id: p.id }));
+  const refs = items.map(p => ({ id: p.id }));
+  const go = rs => { store.markLessonDrilled(l.id); nav({ v: 'drill', mode: 'lesson', refs: rs, lessonId: l.id }); };
+  const pr = h('div.panel.lfinish', h('div.row', h('div.eyebrow', 'Practice'), h('span.flex'),
+    h('span.dimmer', { style: { fontSize: '12px' } }, `${st.right}/${st.n} right · ${st.tried}/${st.n} tried`)));
+  const LABEL = { warmup: 'Warm-up', core: 'Core', exam: 'Exam level' };
+  for (const stage of ['warmup', 'core', 'exam']) {
+    const sub = items.filter(p => p.stage === stage);
+    if (!sub.length) continue;
+    pr.appendChild(h('div.lstage', LABEL[stage]));
+    for (const p of sub) {
+      const v = st.ladder[p.id];
+      pr.appendChild(h('div.lladder' + (v === 1 ? '.ok' : v === 0 ? '.miss' : ''),
+        h('span.ltick', v === 1 ? '✓' : v === 0 ? '✕' : '○'),
+        h('span', `${items.indexOf(p) + 1}. ${String(p.arch || '').replace(/-/g, ' ')}`)));
+    }
+  }
+  const missedRefs = items.filter(p => st.ladder[p.id] === 0).map(p => ({ id: p.id }));
+  pr.appendChild(h('div.row', { style: { marginTop: '14px', flexWrap: 'wrap' } },
+    h('button.btn.primary', { onclick: () => go(refs) }, `Start practice (${refs.length} problems, warm-up to exam level)`),
+    missedRefs.length ? h('button.btn', { onclick: () => go(missedRefs) }, `Redo missed only (${missedRefs.length})`) : null,
+    h('button.btn.ghost', { onclick: () => { store.markLessonDrilled(l.id); nav({ v: 'drill', mode: 'custom', skills }); } }, 'Extra random practice')));
+  frag.appendChild(pr);
+
+  frag.appendChild(h('div.lbar',
+    prev && h('button.btn.sm.ghost', { onclick: () => nav({ v: 'lesson', id: prev.id }) }, '← Prev'),
+    h('span.flex'),
+    next && h('button.btn.sm.ghost', { onclick: () => nav({ v: 'lesson', id: next.id }) }, `Next: ${next.title} →`)));
+  return frag;
 }

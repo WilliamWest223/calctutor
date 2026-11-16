@@ -892,7 +892,7 @@ td.num{font-family:var(--font-m); text-align:right}
 .lgoal{font-size:15px}
 .lpara{margin-top:9px; line-height:1.68; font-size:14.5px}
 .lpara:first-of-type{margin-top:2px}
-.panel.worked{border-left:3px solid var(--cyan)}
+.panel.worked,.panel.recipebox{border-left:3px solid var(--cyan)}
 .lq{
   font-size:15.5px; padding:10px 13px; margin-bottom:10px; border-radius:var(--r-s);
   background:var(--panel-2); border:1px solid var(--line); overflow-x:auto;
@@ -920,3 +920,28 @@ td.num{font-family:var(--font-m); text-align:right}
 .learnband.is-behind:hover{border-color:color-mix(in srgb,var(--amber) 60%,var(--line))}
 .lbglyph{flex:none; font-size:20px; color:var(--lime)}
 .learnband.is-behind .lbglyph{color:var(--amber)}
+
+.lbar{position:sticky; top:0; z-index:5; display:flex; gap:8px; align-items:center; padding:8px 0; margin-bottom:10px; background:var(--bg,#0b0d12); border-bottom:1px solid var(--line,rgba(255,255,255,.08))}
+.lfilter{background:transparent; color:inherit; border:1px solid var(--line,rgba(255,255,255,.15)); border-radius:8px; padding:5px 10px; font:inherit; font-size:13px; min-width:220px}
+.lessonlink{font-size:12px; color:var(--lime); text-decoration:none; white-space:nowrap}
+.lessonlink:hover{text-decoration:underline}
+.examhub{border-left:3px solid var(--coral)}
+.examhub .hubles{display:flex; flex-wrap:wrap; gap:6px; margin:10px 0}
+.examhub .hubles .planchip.done{opacity:.55; text-decoration:line-through}
+.choice.selected{outline:2px solid currentColor}
+.worklines{margin:10px 0; padding:8px 12px; border-left:3px solid var(--line)}
+
+/* rewritten lessons + practice ladder */
+.lrewrite .lpara, .lrewrite .lterm { max-width: 68ch; line-height: 1.65; }
+.lwhy { color: var(--ink-3); margin: 0 0 14px; max-width: 68ch; line-height: 1.55; }
+.lterm { margin: 6px 0; }
+.lcheck { margin-top: 12px; padding: 10px 12px; border: 1px dashed var(--line, #888); border-radius: 8px; }
+.lcheck summary { cursor: pointer; }
+.lcheck .lans { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line, #888); }
+.lstage { margin: 14px 0 4px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+.lladder { display: flex; gap: 10px; padding: 4px 0; text-transform: capitalize; }
+.lladder .ltick { width: 1.2em; text-align: center; opacity: .6; }
+.lladder.ok .ltick { color: var(--lime); opacity: 1; }
+.lladder.miss .ltick { color: var(--coral); opacity: 1; }
+@media (max-width: 600px) { .lrewrite .lpara, .lrewrite .lterm { font-size: 15px; } .lfinish .row { flex-direction: column; align-items: stretch; } }
+.eyebrow .katex{text-transform:none}

@@ -10,14 +10,27 @@ Runs entirely in your browser. No account, no network, no build step.
 ## Learn — the semester program
 
 Press **N**, or the ◈ button. 27 lessons, one per topic block in Dr. McWhorter's
-schedule and dated to the lecture that covers it. Each one teaches the idea,
-works an example the way he works it, names where people lose the marks, links
-his real check-ins for that day, and hands you a drill set.
+schedule and dated to the lecture that covers it.
+
+Each lesson is written from the ground up for a student who feels lost: the
+question the topic answers, the big idea in plain English before any formula,
+the words you need first, then short sections that each add one idea (with a
+"Check yourself" you can reveal), the method as numbered steps, worked
+examples from easy to exam level, exam patterns, and where people lose marks.
+Everything is checked so no math shows as an error.
+
+Every lesson ends with its own **practice ladder**: 10-14 hand-written
+problems, each a different type (true/false, set-up, compute, find the error,
+select all that apply, typed answers, exam-style multi-step), ordered from
+warm-up to exam level. **Start practice** plays them in order; your latest
+result per rung is saved and shown on the lesson page, and **Redo missed only**
+replays what you got wrong. **Extra random practice** still gives random
+drills on the lesson's topics.
 
 Because the lessons carry lecture dates, the program knows what class has
-already covered — so it opens with a **catch-up queue** of what you are behind
-on, oldest first. A lesson counts as finished once you have read it *and*
-drilled it at least once.
+already covered, so it opens with a **catch-up queue** of what you are behind
+on, oldest first. A lesson with a ladder counts as finished once you have read
+it and tried every rung; otherwise once you have read it and drilled it once.
 
 ## The Check-Ins unit
 

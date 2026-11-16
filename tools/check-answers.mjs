@@ -9,6 +9,8 @@
 //      and no distractor may be accepted as the key.
 // ---------------------------------------------------------------
 import { STATIC, GENS, materialize } from '../js/bank/index.js';
+import { normalize } from '../js/bank/index.js';
+import { FIXTURES } from './fmt-fixtures.mjs';
 import { checkTyped, isCheckable } from '../js/mathcheck.js';
 
 let pass = 0;
@@ -69,14 +71,14 @@ console.log(`hand-written cases:  ${pass} passed, ${bad.length} failed`);
 bad.forEach(b => console.log('  x ' + b));
 
 // ---- whole-bank sweep -------------------------------------------
-const all = [];
+const all = FIXTURES.map(f => normalize({ ...f, skill: `${f.unit}/${f.topic}` }));
 for (const p of STATIC) all.push(materialize({ id: p.id }));
 for (const g of GENS) for (let s = 1; s <= 25; s++) all.push(materialize({ gid: g.id, seed: (Math.imul(s, 2654435761) >>> 0) }));
 
 let checkable = 0, selfOk = 0;
 const selfBad = [], falsePos = [];
 for (const p of all) {
-  if (!isCheckable(p.choices)) continue;
+  if (!isCheckable(p.choices) || p.fmt === 'multi' || p.fmt === 'error') continue;
   checkable++;
   const key = p.choices.find(c => c.ok);
   if (checkTyped(key.t, p.choices).status === 'correct') selfOk++;

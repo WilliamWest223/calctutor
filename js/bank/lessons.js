@@ -10,6 +10,8 @@
 // you are behind on and what is coming.
 // ---------------------------------------------------------------
 
+import { REWRITES } from './lessons/index.js';
+
 const L = [];
 const add = o => L.push(o);
 
@@ -437,6 +439,10 @@ add({
 add({
   id: 'ln-sequences', n: 11, title: 'Sequences & Series', unit: 'series',
   dates: ['2026-09-24'],
+  exam: [
+    'Determine whether the sequence converges. If it converges, find its limit. (packet Sec 11.1)',
+    'List the first N terms of the sequence. Does it converge? Explain.',
+  ],
   goal: 'Tell a sequence from a series, and understand what it means for an infinite sum to have a value.',
   why: 'This is the conceptual foundation for the entire second half of the course — and for Exams 2, 3 and the final. Getting the sequence/series distinction wrong makes every later test meaningless.',
   sections: [
@@ -451,6 +457,10 @@ add({
     {
       h: 'The one-way street',
       body: 'If $\\sum a_n$ converges then $a_n\\to0$. The converse is **false** — $\\sum\\frac1n$ has terms going to zero and diverges anyway. This single asymmetry is the most-tested idea in the whole unit.',
+    },
+    {
+      h: 'Decision checklist',
+      body: '**1.** Direct limit? **2.** $\\infty/\\infty$: divide by top power or use L\'Hôpital on $f(x)$. **3.** Squeeze for bounded oscillation ($\\sin n/n$). **4.** Recursive: prove monotone and bounded before solving $L=g(L)$.',
     },
   ],
   worked: [
@@ -467,6 +477,7 @@ add({
   traps: [
     'Concluding a series converges because its terms converge. Terms must go to **zero**, and even that is not enough.',
     'Confusing $a_n$ with $S_N$.',
+    'Solving $L=2L+1$ without first proving the sequence converges.',
   ],
   drill: ['series/Sequences', 'precalc/Summation Notation'],
 });
@@ -474,6 +485,11 @@ add({
 add({
   id: 'ln-geotel', n: 12, title: 'Geometric & Telescoping Series', unit: 'series',
   dates: ['2026-09-29'],
+  exam: [
+    'Is the geometric series convergent? If so, find its sum. (packet Sec 11.2 Ex 11-14)',
+    'Show the series is telescoping, find $s_n$ by partial fractions, then find the sum. (Sec 11.2 Ex 9)',
+    'Express the repeating decimal as a fraction. (Sec 11.2 Ex 40-41)',
+  ],
   goal: 'Recognise a geometric series in disguise, find $r$ correctly, and sum telescoping series by cancellation.',
   why: 'These are the only two families where he asks for the **value**, not just convergence. Every Exam 2 has one of each: "determine whether the series converges. If it converges, find its sum."',
   sections: [
@@ -488,6 +504,10 @@ add({
     {
       h: 'Telescoping',
       body: 'If $a_n = b_n - b_{n+1}$, almost everything cancels and $S_N = b_1 - b_{N+1}$. Write out three or four partial sums explicitly to see what survives — do not guess. Often you must run partial fractions first to reveal the difference.',
+    },
+    {
+      h: 'Decision checklist',
+      body: '**Geometric?** Normalise to $a r^{n}$, check $|r|<1$, sum $=\\frac{a}{1-r}$ with $a$ the FIRST term. **Telescoping?** Partial fractions, write $s_n$, take $\\lim s_n$.',
     },
   ],
   worked: [
@@ -517,6 +537,7 @@ add({
     'Reading $r$ off the unnormalised expression. $4^{2n}$ is $16^{n}$.',
     'Using $\\frac{a}{1-r}$ with $a$ from the formula rather than the actual first term of the sum.',
     'Guessing what telescopes instead of writing out $S_N$.',
+    'Using $a/(1-r)$ with the wrong first term when the index starts at $n=1$ or $n=2$.',
   ],
   checkins: ['ci-f25-1002', 'ci-s26-0224', 'ci-s25-0225'],
   drill: ['series/Geometric & Telescoping'],
@@ -525,6 +546,10 @@ add({
 add({
   id: 'ln-divint', n: 13, title: 'Divergence & Integral Tests', unit: 'series',
   dates: ['2026-10-01'],
+  exam: [
+    'Use the Integral Test to determine whether the series converges. Verify the hypotheses. (packet Sec 11.3 Ex 3-8)',
+    'Estimate the sum using the first $n$ terms and bound the remainder. (Sec 11.3 Ex 33-36)',
+  ],
   goal: 'Use the Divergence Test as a first filter, and apply the Integral Test with its hypotheses stated.',
   why: 'The Divergence Test is the cheapest tool you own and settles several Exam 2 problems in one line. The Integral Test gets asked by name — Spring 2025 Q8 was "use the Integral Test to determine whether $\\sum\\frac{1}{n(\\ln n)^{4}}$ converges."',
   sections: [
@@ -544,6 +569,10 @@ add({
       h: 'The $p$-series',
       body: '$\\displaystyle\\sum\\frac{1}{n^{p}}$ converges iff $p>1$. This is the Integral Test\'s most useful corollary and the yardstick for every comparison you will make.',
     },
+    {
+      h: 'Decision checklist',
+      body: '**1.** $\\lim a_n\\ne0$: diverges. **2.** $p$-series: read $p$. **3.** Else Integral Test: write $f$, check positive, continuous, decreasing, integrate $\\int_1^\\infty f$.',
+    },
   ],
   worked: [
     {
@@ -561,6 +590,7 @@ add({
     'Concluding convergence from $\\lim a_n = 0$.',
     'Applying the Integral Test without checking that $f$ is decreasing.',
     'Reporting the integral\'s value as the series\' sum.',
+    'Skipping the "decreasing" hypothesis, or reporting the integral\'s value as the sum.',
   ],
   checkins: ['ci-f25-0930', 'ci-s26-0219', 'ci-s25-0220', 'ci-s26-0226'],
   drill: ['series/Divergence & Integral Tests', 'series/p-Series & Comparison'],
@@ -569,6 +599,10 @@ add({
 add({
   id: 'ln-alternating', n: 14, title: 'Alternating Series', unit: 'series',
   dates: ['2026-10-01'],
+  exam: [
+    'Show the alternating series converges. Find the smallest $N$ such that the error is less than $0.00005$. (packet Sec 11.5 Ex 23-26)',
+    'Approximate the sum correct to 4 decimal places. (Sec 11.5 Ex 27-30)',
+  ],
   goal: 'Apply the Alternating Series Test with both conditions, and bound the truncation error.',
   why: 'Every Exam 2 opens with an absolute-versus-conditional question built on an alternating series.',
   sections: [
@@ -579,6 +613,10 @@ add({
     {
       h: 'The error bound',
       body: 'For a convergent alternating series, $\\left|S - S_N\\right| \\leq b_{N+1}$. The error is no bigger than the **first term you left out**. This is the cleanest error estimate in the course, and he asks for it.',
+    },
+    {
+      h: 'Decision checklist',
+      body: '**AST:** (i) $b_n\\to0$, (ii) $b_n$ decreasing. **Error:** $|R_N|\\le b_{N+1}$; solve $b_{N+1}<\\varepsilon$ and use $N$ terms.',
     },
   ],
   worked: [
@@ -596,6 +634,7 @@ add({
     'Checking $b_n\\to0$ but not that $b_n$ decreases.',
     'Using $b_N$ instead of $b_{N+1}$ in the error bound.',
     'Applying comparison tests to an alternating series — those require positive terms.',
+    'Using $b_N$ instead of $b_{N+1}$ for the error bound.',
   ],
   checkins: ['ci-f25-1016', 'ci-f25-1007'],
   drill: ['series/Alternating Series & Error'],
@@ -604,6 +643,9 @@ add({
 add({
   id: 'ln-limcomp', n: 15, title: 'Limit Comparison Test', unit: 'series',
   dates: ['2026-10-06'],
+  exam: [
+    'Use the Limit Comparison Test to determine whether the series converges. (packet Sec 11.4 Ex 9-16)',
+  ],
   goal: 'Choose the right comparison series by degree, and run the limit correctly.',
   why: 'His most-used test on Exam 2 — usually two problems. Fall 2025 Q3 and Q5 were both limit comparisons.',
   sections: [
@@ -614,6 +656,10 @@ add({
     {
       h: 'Picking $b_n$: subtract the degrees',
       body: 'Keep only the dominant power on top and bottom and cancel. $\\dfrac{n^{2}}{n^{5}+1}\\to\\dfrac{n^{2}}{n^{5}} = \\dfrac{1}{n^{3}}$, so compare with $p=3$. Watch radicals: $\\sqrt{4n^{4}-2}$ behaves like $2n^{2}$, not $n^{4}$.',
+    },
+    {
+      h: 'Decision checklist',
+      body: '**1.** Keep leading behaviour to pick $b_n$. **2.** Compute $\\lim a_n/b_n$. **3.** Finite positive: same behaviour as $\\sum b_n$. **4.** $0$ or $\\infty$: not conclusive (unless the known side helps).',
     },
   ],
   worked: [
@@ -632,6 +678,7 @@ add({
     'Using it on an alternating series — the hypotheses require positive terms.',
     'Choosing $b_n$ from the wrong power. Subtract degrees carefully, with radicals halved.',
     'Not stating that the limit is finite and nonzero. That sentence is worth marks.',
+    'Concluding from a limit of $0$ or $\\infty$ as if it were finite and positive.',
   ],
   checkins: ['ci-s26-0303', 'ci-f25-1007', 'ci-s25-0227', 'ci-s25-0306'],
   drill: ['series/Limit Comparison'],
@@ -640,6 +687,9 @@ add({
 add({
   id: 'ln-dircomp', n: 16, title: 'Direct Comparison Test', unit: 'series',
   dates: ['2026-10-08'],
+  exam: [
+    'Use the Comparison Test to determine whether the series converges. (packet Sec 11.4 Ex 3-8, 11-30, e.g. $\\sum\\frac{2+\\sin n}{n}$)',
+  ],
   goal: 'Build a valid inequality in the direction the test actually needs.',
   why: 'He specifically tests the *direction* of the comparison — a check-in almost every semester presents a true inequality pointing the useless way.',
   sections: [
@@ -654,6 +704,10 @@ add({
     {
       h: 'When it gets awkward, switch',
       body: 'Direct comparison needs the inequality to point the right way, which sometimes it stubbornly refuses to do. Limit comparison does not care about direction — use it instead.',
+    },
+    {
+      h: 'Decision checklist',
+      body: '**Larger converges: smaller converges. Smaller diverges: larger diverges.** Mixed directions say nothing. Write the inequality explicitly for every $n$.',
     },
   ],
   worked: [
@@ -672,6 +726,7 @@ add({
     'Concluding divergence because your series is *smaller* than a divergent one.',
     'Concluding convergence because your series is *bigger* than a convergent one.',
     'Forgetting that both series must be non-negative.',
+    'Comparing in the wrong direction: a smaller convergent series proves nothing about a bigger one.',
   ],
   checkins: ['ci-f25-1014', 'ci-s26-0303'],
   drill: ['series/p-Series & Comparison'],
@@ -680,6 +735,9 @@ add({
 add({
   id: 'ln-abscond', n: 17, title: 'Absolute vs Conditional Convergence', unit: 'series',
   dates: ['2026-10-13'],
+  exam: [
+    'Determine whether the series is absolutely convergent, conditionally convergent, or divergent. Fully justify.',
+  ],
   goal: 'Classify any alternating series as absolutely convergent, conditionally convergent, or divergent.',
   why: 'This is Question 1 on every Exam 2 he has written, phrased identically each time: "determine whether the following series is divergent, conditionally convergent, or absolutely convergent."',
   sections: [
@@ -690,6 +748,10 @@ add({
     {
       h: 'Why absolute is stronger',
       body: 'Absolute convergence implies convergence, but not conversely. $\\sum\\frac{(-1)^{n}}{n}$ converges while $\\sum\\frac1n$ does not — that is conditional convergence, and it is fragile: rearranging a conditionally convergent series can change its sum to anything you like.',
+    },
+    {
+      h: 'Decision checklist',
+      body: '**1.** Test $\\sum|a_n|$ first. **2.** If it converges: absolute. **3.** If it diverges and the series is alternating: AST, then conditional. **4.** If AST fails: divergent.',
     },
   ],
   worked: [
@@ -707,6 +769,7 @@ add({
   traps: [
     'Stopping after the AST and calling it "convergent" when the question asked which kind.',
     'Applying limit comparison to the alternating series rather than to $\\sum|a_n|$.',
+    'Calling a series convergent when only the AST was checked, without testing absolute convergence.',
   ],
   checkins: ['ci-s25-0306', 'ci-f25-1016'],
   drill: ['series/Alternating Series & Error', 'series/Ratio & Root Tests'],
@@ -715,6 +778,10 @@ add({
 add({
   id: 'ln-ratioroot', n: 18, title: 'Ratio & Root Tests', unit: 'series',
   dates: ['2026-10-20'],
+  exam: [
+    'Use the Ratio Test to determine convergence. (packet Sec 11.6)',
+    'Use the Root Test (whole term to the $n$-th power). (Fall 2025 Exam 2 Q4)',
+  ],
   goal: 'Apply both tests, and know that $L=1$ is the only inconclusive case.',
   why: 'Exam 2 always has one of each, and the Ratio Test is how you find every radius of convergence on Exam 3. This lesson pays twice.',
   sections: [
@@ -729,6 +796,10 @@ add({
     {
       h: 'Factorial arithmetic',
       body: '$\\dfrac{(n+1)!}{n!} = n+1$. $\\dfrac{(2n+2)!}{(2n)!} = (2n+2)(2n+1)$. Expand carefully — most Ratio Test errors are factorial bookkeeping, not calculus.',
+    },
+    {
+      h: 'Decision checklist',
+      body: 'Factorial or $c^{n}$: Ratio. Whole term raised to $n$: Root. $L<1$ converges absolutely; $L>1$ diverges; $L=1$ inconclusive; never use on $p$-series.',
     },
   ],
   worked: [
@@ -757,6 +828,7 @@ add({
     'Calling $L=0$ inconclusive. Only $L=1$ is.',
     'Botching $\\frac{(2n+2)!}{(2n)!}$ — write out the factors.',
     'Using the Ratio Test on a plain $p$-series, where it always gives $L=1$ and wastes your time.',
+    'Treating $L=1$ as divergence.',
   ],
   checkins: ['ci-f25-1021', 'ci-s25-0318', 'ci-s26-0317', 'ci-s25-0304'],
   drill: ['series/Ratio & Root Tests', 'series/Choosing a Test'],
@@ -765,6 +837,12 @@ add({
 add({
   id: 'ln-powerseries', n: 19, title: 'Power Series', unit: 'series',
   dates: ['2026-10-22'],
+  exam: [
+    'Find the interval of convergence of $\\sum a_n(x-c)^n$. Be sure to check the endpoints. (Exam 3 Q3 and Q5 pattern)',
+    'Find the centre and radius of convergence. (radius only: no endpoint work)',
+    'Given the interval $[-1,2)$, state the centre and radius: centre $\\frac12$, radius $\\frac32$.',
+    'Determine all $x$ for which the series converges. Fully justify.',
+  ],
   goal: 'Find centre, radius, and the full interval of convergence — endpoints included.',
   why: 'Bridges Exams 2 and 3, and appears on both plus the final. Exam 3 typically has two or three of these.',
   sections: [
@@ -780,6 +858,10 @@ add({
       h: 'The two extremes',
       body: 'Factorial in the **numerator** ($\\sum n!x^{n}$) → $R=0$, converges only at the centre. Factorial in the **denominator** ($\\sum\\frac{x^{n}}{n!}$) → $R=\\infty$. And watch for a coefficient on $x$: $\\sum n!(5x+2)^{n}$ has centre $-\\frac25$, not $0$.',
     },
+    {
+      h: 'Decision checklist',
+      body: '**1.** Factor to the form $(x-c)^n$ (pull any coefficient off $x$). **2.** Ratio Test on $|a_{n+1}/a_n|$, solve $L<1$ for $|x-c|<R$. **3.** Write the open interval $(c-R,c+R)$. **4.** Substitute each endpoint, name a test for each numeric series. **5.** State the interval with the right bracket on each side. If a factorial is on top, $R=0$; if on the bottom, $R=\\infty$ (no endpoints).',
+    },
   ],
   worked: [
     {
@@ -794,11 +876,24 @@ add({
       ],
       note: 'The two endpoints disagreed. They usually do — which is exactly why you must test both.',
     },
+    {
+      q: 'Find the centre, radius and interval of convergence of $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{(2x-1)^{n}}{n^{2}\\,3^{n}}$.',
+      steps: [
+        'Rewrite $2x-1 = 2\\left(x-\\tfrac12\\right)$: centre $x=\\tfrac12$.',
+        'Ratio Test: $\\displaystyle\\lim\\left|\\frac{(2x-1)^{n+1}}{(n+1)^{2}3^{n+1}}\\cdot\\frac{n^{2}3^{n}}{(2x-1)^{n}}\\right|=\\frac{|2x-1|}{3}$.',
+        '$\\frac{|2x-1|}{3}<1\\Rightarrow|2x-1|<3\\Rightarrow -1<x<2$, so $R=\\tfrac32$.',
+        'Endpoint $x=2$: $\\sum\\frac{3^{n}}{n^{2}3^{n}}=\\sum\\frac1{n^{2}}$, a convergent $p$-series.',
+        'Endpoint $x=-1$: $\\sum\\frac{(-3)^{n}}{n^{2}3^{n}}=\\sum\\frac{(-1)^{n}}{n^{2}}$, converges absolutely.',
+        'Interval of convergence: $[-1,2]$.',
+      ],
+      note: 'Different archetype: coefficient on $x$, and both endpoints converge. Radius is half the width, $\\frac{2-(-1)}{2}$, not $3$.',
+    },
   ],
   traps: [
     'Stopping at the radius and calling the open interval the answer.',
     'Assuming both endpoints behave the same way.',
     'Forgetting to factor out a coefficient on $x$ before reading the centre.',
+    'Reading the radius as $3$ when the series is in $(2x-1)^n$: the radius is for $x-c$, so divide by the $2$.',
   ],
   checkins: ['ci-f25-1030', 'ci-s25-0327', 'ci-s26-0331', 'ci-s26-0326', 'ci-f25-1104', 'ci-s25-0401'],
   drill: ['series/Power Series & Radius'],
@@ -807,6 +902,13 @@ add({
 add({
   id: 'ln-exam2', n: 20, title: 'Exam 2 Review', unit: 'series', kind: 'exam',
   dates: ['2026-10-27'],
+  exam: [
+    'Determine whether the series is absolutely convergent, conditionally convergent, or divergent. Fully justify.',
+    'Use the Ratio Test (or Root Test) to determine convergence. (Fall 2025 Exam 2 Q4 is a Root Test)',
+    'Is the geometric series convergent? If so, find its sum.',
+    'Show the series is telescoping, find $s_n$ by partial fractions, then find the sum.',
+    'Decide which test to use for each series (packet Sec 11.7 style).',
+  ],
   goal: 'Pick the right convergence test on sight and justify it the way he grades it.',
   why: 'Exam 2 is 10% of your grade: eight series, each needing a test named, applied, and justified.',
   sections: [
@@ -822,12 +924,30 @@ add({
       h: 'Justification is the grade',
       body: 'He writes "fully justifying your reasoning" on every problem. Name the test, verify its hypotheses out loud, show the limit, state the conclusion. A correct verdict with absent or invalid reasoning earns very little.',
     },
+    {
+      h: 'Decision checklist',
+      body: 'Per series: **(a)** $\\lim a_n\\ne0$? Divergence Test, stop. **(b)** Name the form (geometric, telescoping, $p$, rational, factorial, $n$th power, alternating). **(c)** State the test\'s hypotheses (positive, decreasing, ...). **(d)** Show the limit or inequality. **(e)** Write the conclusion in the words he asked for (converges absolutely / conditionally / diverges).',
+    },
+  ],
+  worked: [
+    {
+      q: 'Classify $\\displaystyle\\sum_{n=1}^{\\infty}\\frac{(-1)^{n}n}{n^{2}+1}$ as absolutely convergent, conditionally convergent, or divergent. Fully justify.',
+      steps: [
+        'Absolute series: $\\sum\\frac{n}{n^{2}+1}$. Positive terms, rational, so Limit Comparison with $\\sum\\frac1n$.',
+        '$\\displaystyle\\lim\\frac{n/(n^{2}+1)}{1/n}=\\lim\\frac{n^{2}}{n^{2}+1}=1$, finite and positive, and $\\sum\\frac1n$ diverges, so $\\sum|a_n|$ **diverges**.',
+        'Alternating Series Test on $b_n=\\frac{n}{n^{2}+1}$: $b_n\\to0$.',
+        '$b_n$ is decreasing for $n\\ge1$: $b\'(n)=\\frac{1-n^{2}}{(n^{2}+1)^{2}}\\le0$.',
+        'AST holds, so the series converges, but not absolutely: **conditionally convergent**.',
+      ],
+      note: 'Two tests, two verdicts, one classification. Order matters: absolute first.',
+    },
   ],
   traps: [
     'Using a comparison test on an alternating series.',
     'Concluding convergence from $\\lim a_n = 0$.',
     'Reporting the Integral Test\'s value as the sum.',
     'Reading $r$ off an unnormalised geometric series.',
+    'Stopping after the AST passes and calling it "convergent": he wants absolute vs conditional.',
   ],
   drill: ['series/Choosing a Test', 'series/Geometric & Telescoping', 'series/Divergence & Integral Tests',
     'series/p-Series & Comparison', 'series/Limit Comparison', 'series/Alternating Series & Error',
@@ -841,6 +961,12 @@ add({
 add({
   id: 'ln-taylor', n: 21, title: 'Taylor & Maclaurin Series', unit: 'series',
   dates: ['2026-10-29', '2026-11-05'],
+  exam: [
+    'Complete the table of Maclaurin series: write each series in sigma notation and give its interval of convergence. (Exam 3 Q1, 18 pts, six rows)',
+    'Find the Taylor series for $f(x)$ centred at $x=c$, from scratch. Do not use known series. (Exam 3 Q2)',
+    'Find the Maclaurin series for $x\\cos(x^{3})$ and give its radius of convergence. (Exam 3 Q4)',
+    'Use a known series to find the Maclaurin series of $f$; write your answer in sigma notation.',
+  ],
   goal: 'Know the six standard Maclaurin series cold, build new ones by substitution, and derive one from scratch.',
   why: 'Exam 3 Question 1 is an 18-point table of exactly six Maclaurin series — the biggest single question of the term, and pure recall. Question 2 is a from-scratch derivation.',
   sections: [
@@ -859,6 +985,10 @@ add({
     {
       h: 'From scratch',
       body: 'When he forbids known series: compute $f(c), f\'(c), f\'\'(c), f\'\'\'(c)$ as **numbers**, find the pattern for $f^{(n)}(c)$, then divide by $n!$. The factorials usually cancel. Compute four derivatives — three is not enough to see the pattern.',
+    },
+    {
+      h: 'Decision checklist',
+      body: '**Is a known series allowed?** Yes: pick the closest of the six, substitute for $x$, then multiply, differentiate or integrate. No ("from scratch"): four derivatives at $c$ as numbers, guess $f^{(n)}(c)$, divide by $n!$. **Check:** the first 2 or 3 terms of your sigma must match the derivatives. **Interval:** after substituting $u=g(x)$, solve the old interval for $u$ in $x$ (e.g. $|x/2|<1$ gives $R=2$).',
     },
   ],
   worked: [
@@ -882,11 +1012,22 @@ add({
       ],
       note: 'The two sign factors cancelled — from the derivative and from evaluating at a negative number.',
     },
+    {
+      q: 'Find the Maclaurin series of $f(x)=\\dfrac{x^{2}}{2+x}$ and its radius of convergence.',
+      steps: [
+        'Rewrite as geometric: $\\dfrac{1}{2+x}=\\dfrac{1}{2}\\cdot\\dfrac{1}{1-(-x/2)}$.',
+        '$\\dfrac1{1-u}=\\sum u^{n}$ with $u=-\\frac x2$: $\\dfrac1{2+x}=\\displaystyle\\sum_{n=0}^{\\infty}\\frac{(-1)^{n}x^{n}}{2^{n+1}}$.',
+        'Multiply by $x^{2}$: $\\displaystyle\\frac{x^{2}}{2+x}=\\sum_{n=0}^{\\infty}\\frac{(-1)^{n}x^{n+2}}{2^{n+1}}=\\frac{x^{2}}2-\\frac{x^{3}}4+\\frac{x^{4}}8-\\cdots$',
+        'Need $|u|=|x/2|<1$, so $R=2$.',
+      ],
+      note: 'Different archetype: a rational function, not a standard series. Force the form $\\frac1{1-u}$ by factoring out the constant. The radius changes from the standard $1$ to $2$.',
+    },
   ],
   traps: [
     'Mixing up sine and cosine: odd powers with $(2n+1)!$ versus even powers with $(2n)!$.',
     'Putting factorials in $\\ln(1+x)$ or $\\arctan x$ — those have plain $n$ and $2n+1$.',
     'Writing $(x-c)^{n}$ with the wrong sign when the centre is negative.',
+    'Using $\\frac1{1-x}$ directly on $\\frac1{2+x}$: factor out the $2$ first or the leading term is wrong.',
   ],
   checkins: ['ci-s26-0402', 'ci-f25-1106', 'ci-f25-1118', 'ci-s26-0414', 'ci-s25-0403'],
   drill: ['series/Taylor & Maclaurin Series'],
@@ -895,6 +1036,12 @@ add({
 add({
   id: 'ln-remainder', n: 22, title: 'Taylor Remainder Theorem', unit: 'series',
   dates: ['2026-11-10'],
+  exam: [
+    'If one uses $T_2(x)$ to approximate $f(x)$ on $(-1,1)$, what is the largest possible error? (Exam 3 Q6/Q7 pattern)',
+    'Use Taylor\'s inequality / the Lagrange remainder to bound $|R_n(x)|$ on the given interval.',
+    'How many terms are needed to guarantee error less than $0.001$?',
+    'True or false (justify): the Taylor series of $f$ converges to $f$ everywhere it converges.',
+  ],
   goal: 'Write the Lagrange remainder correctly and bound the error of a Taylor approximation.',
   why: 'An Exam 3 question every semester: "if one uses $T_2(x)$ to approximate $f$ on $(-1,1)$, what is the largest possible error?"',
   sections: [
@@ -910,6 +1057,10 @@ add({
       h: 'Convergence is not automatic',
       body: 'A Taylor series converging does not mean it converges **to** $f$. That requires $R_n\\to0$, which can fail. The standard counterexample: $g(x)=e^{-1/x}$ for $x>0$ and $0$ otherwise has every derivative zero at the origin, so its Maclaurin series is identically $0$ and equals $g$ nowhere but the centre.',
     },
+    {
+      h: 'Decision checklist',
+      body: '**1.** Identify $f$, centre $c$, degree $n$, interval. **2.** Write $R_n=\\frac{f^{(n+1)}(z)}{(n+1)!}(x-c)^{n+1}$. **3.** Find $M\\ge|f^{(n+1)}|$ on the interval (max, not value at $c$). **4.** Find the largest $|x-c|$ on the interval. **5.** Multiply and divide by $(n+1)!$. **6.** For "how many terms": solve the bound $<\\varepsilon$ by trying $n=1,2,\\dots$',
+    },
   ],
   worked: [
     {
@@ -922,11 +1073,22 @@ add({
       ],
       note: 'Using $z=0$ would give $\\frac16$ — a much smaller number, and not a valid bound.',
     },
+    {
+      q: 'How large must $n$ be so that $T_n(x)$ for $\\sin x$ at $c=0$ approximates $\\sin(1)$ with error less than $0.001$?',
+      steps: [
+        'Every derivative of $\\sin$ is $\\pm\\sin$ or $\\pm\\cos$, so $|f^{(n+1)}(z)|\\le1$.',
+        '$|R_n(1)|\\le\\dfrac{1}{(n+1)!}\\cdot1^{n+1}=\\dfrac1{(n+1)!}$.',
+        '$n=5$: $\\frac1{720}\\approx0.00139>0.001$ (not enough).',
+        '$n=6$: $\\frac1{5040}\\approx0.000198<0.001$. So $n=6$.',
+      ],
+      note: 'Different archetype: find $n$ rather than bound a given $n$. Here $T_6=T_5$ for sine (no $x^6$ term), so $T_5$ already has error under $0.000198$.',
+    },
   ],
   traps: [
     'Evaluating $f^{(n+1)}$ at the centre instead of bounding it over the interval.',
     'Using $n!$ instead of $(n+1)!$.',
     'Assuming a Taylor series always converges to its function.',
+    'For "how many terms", solving with $n!$ instead of $(n+1)!$ and ending one degree short.',
   ],
   checkins: ['ci-s26-0409', 'ci-f25-1113', 'ci-s25-0415', 'ci-s25-0408'],
   drill: ['series/Taylor Polynomials & Error'],
@@ -935,6 +1097,12 @@ add({
 add({
   id: 'ln-serapp', n: 23, title: 'Applications of Series', unit: 'series',
   dates: ['2026-11-12'],
+  exam: [
+    'Compute the following sum: $\\sum\\frac{3^{n}}{n!}$ (Exam 3 Q6; also on the final).',
+    'Use a Maclaurin series to approximate $\\int_0^1 e^{-x^{2}}dx$; give the first nonzero terms.',
+    'Use series to evaluate $\\lim_{x\\to0}\\frac{\\arctan x-x}{x^{3}}$.',
+    'Find the sum of the series by recognising it as a Taylor series evaluated at a point.',
+  ],
   goal: 'Sum numeric series by recognising a known Maclaurin form, and use series to evaluate limits and integrals.',
   why: 'Exam 3 and the final both ask you to "compute the following sum" for something like $\\sum\\frac{3^{n}}{n!}$ — trivial if you recognise it, impossible otherwise.',
   sections: [
@@ -950,6 +1118,10 @@ add({
       h: 'Limits by series',
       body: 'For $\\displaystyle\\lim_{x\\to0}\\frac{\\arctan x - x}{x^{3}}$, substitute the series: the numerator is $-\\frac{x^{3}}{3}+\\frac{x^{5}}{5}-\\cdots$, so the ratio tends to $-\\frac13$. Often faster than three rounds of L\'Hôpital.',
     },
+    {
+      h: 'Decision checklist',
+      body: '**Sum:** factorial? $e^{x}$, $\\sin$, $\\cos$. Plain $n$ or $2n+1$ in the denominator? $\\ln(1+x)$ or $\\arctan x$. Constant ratio only? geometric. Pull out $(\\text{stuff})^{n}$ to read $x$, fix the starting index, check for $(-1)^{n}$. **Integral:** substitute, integrate term by term, evaluate bounds, stop after the requested terms. **Limit:** expand numerator and denominator to the first nonzero power, cancel.',
+    },
   ],
   worked: [
     {
@@ -962,11 +1134,22 @@ add({
       ],
       note: 'Compare $\\sum\\frac{1}{n!2^{n}}$: there the $2^{n}$ is in the denominator, so $x=\\frac12$ and the sum is $\\sqrt e$ — not $e^{2}$. He has set that exact trap.',
     },
+    {
+      q: 'Approximate $\\displaystyle\\int_{0}^{1}e^{-x^{2}}\\,dx$ using the first four nonzero terms of its series, and bound the error.',
+      steps: [
+        '$e^{u}=\\sum\\frac{u^{n}}{n!}$ with $u=-x^{2}$: $e^{-x^{2}}=1-x^{2}+\\frac{x^{4}}2-\\frac{x^{6}}6+\\frac{x^{8}}{24}-\\cdots$',
+        'Integrate term by term: $\\displaystyle\\int_0^1=1-\\frac13+\\frac1{10}-\\frac1{42}+\\frac1{216}-\\cdots$',
+        'First four terms: $1-\\frac13+\\frac1{10}-\\frac1{42}=\\frac{26}{35}\\approx0.7429$.',
+        'Alternating series with decreasing terms: error $\\le$ first omitted term $=\\frac1{216}\\approx0.0046$.',
+      ],
+      note: 'Different archetype: an integral with no elementary antiderivative. True value $\\approx0.7468$, inside the bound.',
+    },
   ],
   traps: [
     'Reading $x$ as $2$ when the term has $\\frac{1}{2^{n}}$ — it is $x=\\frac12$.',
     'Ignoring a starting index that differs from the standard series.',
     'Forgetting the alternating factor when matching sine or cosine.',
+    'Putting the $x^{2}$ from $e^{-x^{2}}$ into the factorial: the term is $\\frac{(-1)^{n}x^{2n}}{n!}$, not $(2n)!$.',
   ],
   checkins: ['ci-s25-0410', 'ci-s26-0407', 'ci-f25-1111'],
   drill: ['series/Applications of Series', 'series/Taylor & Maclaurin Series'],
@@ -975,6 +1158,13 @@ add({
 add({
   id: 'ln-exam3', n: 24, title: 'Exam 3 Review', unit: 'series', kind: 'exam',
   dates: ['2026-11-19'],
+  exam: [
+    'Q1: Fill in the table of six Maclaurin series with sigma form and interval of convergence (18 pts).',
+    'Q2: Find the Taylor series centred at $c$ from scratch.',
+    'Q3/Q5: Find the interval of convergence. Check endpoints.',
+    'Q4: Find the Maclaurin series of a substituted function.',
+    'Q6: Taylor polynomial and largest possible error on an interval; also compute $\\sum\\frac{3^{n}}{n!}$-type sums.',
+  ],
   goal: 'Have the six-series table memorised and the power-series procedure automatic.',
   why: 'Exam 3 is 10% of your grade and is entirely power and Taylor series.',
   sections: [
@@ -986,11 +1176,27 @@ add({
       h: 'Where the free points are',
       body: 'The table is the single biggest question of the term and requires no thinking at all — only memory. Write all six rows, all three columns, from memory in under two minutes, repeatedly, until the week of the exam. That alone is most of a letter grade.',
     },
+    {
+      h: 'Decision checklist',
+      body: '**Series asks "for which $x$"?** Ratio Test then endpoints. **Asks for a series of $f$?** Known allowed: substitute; from scratch: derivatives. **Asks for a sum?** Match a known series. **Asks for an error?** Lagrange remainder: max of derivative times max of $|x-c|^{n+1}$ over $(n+1)!$. **Time check:** the table first (2 minutes), then the endpoint-heavy problems.',
+    },
+  ],
+  worked: [
+    {
+      q: 'Compute $\\displaystyle\\sum_{n=0}^{\\infty}\\frac{(-1)^{n}\\pi^{2n}}{(2n)!}$.',
+      steps: [
+        'Even powers, $(2n)!$, alternating sign: $\\cos x=\\sum(-1)^{n}\\frac{x^{2n}}{(2n)!}$.',
+        'Match $x^{2n}=\\pi^{2n}$, so $x=\\pi$.',
+        'Sum $=\\cos\\pi=-1$.',
+      ],
+      note: 'Different archetype from $\\sum\\frac{3^n}{n!}$: sign and the exponent $2n$ tell you it is cosine, not the exponential.',
+    },
   ],
   traps: [
     'Endpoint intervals: $\\frac{1}{1-x}$ is $(-1,1)$, $\\ln(1+x)$ is $(-1,1]$, $\\arctan x$ is $[-1,1]$. All three differ.',
     'Evaluating the remainder derivative at the centre.',
     'Stopping a power-series problem at the radius.',
+    'Reading the sine/cosine pair by the numerator only: check whether the factorial is $(2n)!$ or $(2n+1)!$.',
   ],
   drill: ['series/Taylor & Maclaurin Series', 'series/Power Series & Radius', 'series/Taylor Polynomials & Error',
     'series/Applications of Series', 'series/Ratio & Root Tests'],
@@ -1003,6 +1209,12 @@ add({
 add({
   id: 'ln-polar', n: 25, title: 'Polar Coordinates', unit: 'polar',
   dates: ['2026-12-01'],
+  exam: [
+    'Find the area of the region enclosed by $r=f(\\theta)$. (set up and evaluate)',
+    'Convert the rectangular equation/point to polar (or the reverse).',
+    'Find the area inside one curve and outside another. (find the intersection angles first)',
+    'Sketch the polar curve $r=\\dots$ and label the petals.',
+  ],
   goal: 'Convert between polar and rectangular, sketch the standard curves, and set up polar area integrals.',
   why: 'Taught after Exam 3, so it appears only on the final — but it is guaranteed to be there and it is entirely learnable in an afternoon.',
   sections: [
@@ -1018,6 +1230,10 @@ add({
       h: 'Petal counting',
       body: '$r = a\\cos(k\\theta)$ or $a\\sin(k\\theta)$ has $k$ petals when $k$ is **odd** and $2k$ petals when $k$ is **even**.',
     },
+    {
+      h: 'Decision checklist',
+      body: '**1.** Find where $r=0$ or where the curves meet (limits). **2.** Decide which curve is outer on that interval. **3.** $A=\\frac12\\int(r_{out}^{2}-r_{in}^{2})\\,d\\theta$, not $(r_{out}-r_{in})^2$. **4.** Reduce $\\sin^2,\\cos^2$ with half-angle. **5.** Sanity check: area positive, less than the circle that contains it.',
+    },
   ],
   worked: [
     {
@@ -1030,11 +1246,22 @@ add({
       ],
       note: 'Finding the limits was the real work. The integral itself is a routine half-angle.',
     },
+    {
+      q: 'Find the area inside $r=3\\sin\\theta$ and outside $r=1+\\sin\\theta$.',
+      steps: [
+        'Intersect: $3\\sin\\theta=1+\\sin\\theta\\Rightarrow\\sin\\theta=\\frac12\\Rightarrow\\theta=\\frac\\pi6,\\frac{5\\pi}6$.',
+        'On $(\\frac\\pi6,\\frac{5\\pi}6)$ the circle $3\\sin\\theta$ is the outer curve.',
+        '$A=\\frac12\\displaystyle\\int_{\\pi/6}^{5\\pi/6}\\left(9\\sin^{2}\\theta-(1+\\sin\\theta)^{2}\\right)d\\theta$.',
+        'Simplify the integrand: $8\\sin^{2}\\theta-2\\sin\\theta-1$; evaluate: $A=\\pi$.',
+      ],
+      note: 'Different archetype: two curves. The key step is subtracting squares of the radii, not squaring the difference.',
+    },
   ],
   traps: [
     'Swapping the conversions — it is $x=r\\cos\\theta$, not $r\\sin\\theta$.',
     'Dropping the $\\frac12$ or forgetting to square $r$.',
     'Integrating over the whole circle when you wanted one petal.',
+    'Using $\\theta$ limits from the sketch of one curve only, when the region is bounded by two.',
   ],
   checkins: ['ci-s25-0424'],
   drill: ['polar/Polar Coordinates', 'polar/Polar Area & Arc Length'],
@@ -1043,6 +1270,12 @@ add({
 add({
   id: 'ln-parametric', n: 26, title: 'Parametric Functions', unit: 'polar',
   dates: ['2026-12-03'],
+  exam: [
+    'Find $\\frac{dy}{dx}$ (and $\\frac{d^{2}y}{dx^{2}}$) at the given value of $t$.',
+    'Find the equation of the tangent line to the curve at $t=\\dots$.',
+    'Find the length of the curve $x=\\dots,\\ y=\\dots,\\ a\\le t\\le b$.',
+    'Eliminate the parameter and sketch, indicating direction.',
+  ],
   goal: 'Differentiate and find arc length for a curve given parametrically.',
   why: 'The last topic of the term, and it appears on the final. Short, formula-driven, and worth locking down.',
   sections: [
@@ -1053,6 +1286,10 @@ add({
     {
       h: 'Arc length',
       body: '$L = \\displaystyle\\int_{a}^{b}\\sqrt{\\left(\\frac{dx}{dt}\\right)^{2}+\\left(\\frac{dy}{dt}\\right)^{2}}\\,dt$ — the same Pythagorean idea as the rectangular version, with both coordinates now moving.',
+    },
+    {
+      h: 'Decision checklist',
+      body: '**Slope:** $\\frac{dy/dt}{dx/dt}$ at the given $t$. **Horizontal tangent:** $dy/dt=0$, $dx/dt\\ne0$. **Vertical:** $dx/dt=0$, $dy/dt\\ne0$. **Second derivative:** differentiate $dy/dx$ in $t$, divide by $dx/dt$. **Arc length:** simplify $x\'^2+y\'^2$ to a perfect square if the problem was designed to allow it.',
     },
   ],
   worked: [
@@ -1065,10 +1302,21 @@ add({
       ],
       note: 'No need to eliminate the parameter — that usually makes it harder.',
     },
+    {
+      q: 'Find the length of $x=t^{2},\\ y=t^{3}$ for $0\\le t\\le1$.',
+      steps: [
+        '$x\'=2t$, $y\'=3t^{2}$, so $x\'^{2}+y\'^{2}=4t^{2}+9t^{4}=t^{2}(4+9t^{2})$.',
+        'For $t\\ge0$: $\\sqrt{\\cdot}=t\\sqrt{4+9t^{2}}$.',
+        '$L=\\displaystyle\\int_0^1t\\sqrt{4+9t^{2}}\\,dt$, $u=4+9t^{2}$, $du=18t\\,dt$.',
+        '$L=\\frac1{18}\\cdot\\frac23\\left[u^{3/2}\\right]_4^{13}=\\frac{13\\sqrt{13}-8}{27}\\approx1.4397$.',
+      ],
+      note: 'Factoring $t^2$ out of the radicand makes the substitution work. Also, $\\frac{d^2y}{dx^2}$ for $x=t^2+1,\\ y=t^3-t$ is $\\frac{3t^2+1}{4t^3}$, i.e. $\\frac{13}{32}$ at $t=2$.',
+    },
   ],
   traps: [
     'Inverting the ratio: it is $\\frac{dy/dt}{dx/dt}$.',
     'For $\\frac{d^{2}y}{dx^{2}}$, forgetting the second division by $\\frac{dx}{dt}$.',
+    'Forgetting that $\\sqrt{t^{2}}=|t|$; the sign matters when $t$ can be negative.',
   ],
   drill: ['polar/Parametric Curves', 'polar/Parametric Calculus'],
 });
@@ -1076,6 +1324,12 @@ add({
 add({
   id: 'ln-final', n: 27, title: 'Final Exam Review', unit: 'series', kind: 'exam',
   dates: ['2026-12-10'],
+  exam: [
+    'Set up but do not evaluate an integral for arc length / surface area. (Exam 1 v1 Q2 pattern)',
+    'Determine whether the series converges absolutely, conditionally, or diverges. Fully justify. (6 to 7 per final)',
+    'Compute the integral (show all work, completely simplify). (Exam 1 Q1, Q3, Q4, Q5, Q6, Q8)',
+    'Find the interval of convergence / Maclaurin series / error bound.',
+  ],
   goal: 'Be ready for anything from the whole term, weighted toward series.',
   why: 'The final is 25% of your grade — more than any two midterms combined — and it is cumulative.',
   sections: [
@@ -1087,14 +1341,41 @@ add({
       h: 'How to revise',
       body: 'Series is the biggest block, so start there — but the integration techniques are the easiest marks to recover because the methods are mechanical once recognised. Use the mistake bank: it already knows what you personally get wrong.',
     },
+    {
+      h: 'Decision checklist',
+      body: '**Integral?** Name the technique first: $u$-sub, parts (LIATE), trig integral, trig sub, partial fractions (long division if deg top $\\ge$ deg bottom), improper (limit!). **Series?** Divergence Test first, then the Choosing-a-Test order from Exam 2. **Taylor/power?** Ratio Test plus endpoints, six-series table. **Setup-only?** Write the integral and stop; do not evaluate.',
+    },
+  ],
+  worked: [
+    {
+      q: 'Which test settles each? (a) $\\sum\\frac{n!}{3^{n}}$  (b) $\\sum\\frac{2n+1}{n^{3}+4}$  (c) $\\sum\\left(\\frac{n}{2n+1}\\right)^{n}$  (d) $\\sum\\frac{(-1)^{n}}{\\ln n}$ ($n\\ge2$).',
+      steps: [
+        '(a) Factorial: Ratio Test. $\\frac{n+1}{3}\\to\\infty$, so **diverges**.',
+        '(b) Rational: Limit Comparison with $\\sum\\frac1{n^{2}}$; limit $2$; **converges**.',
+        '(c) $n$th power: Root Test. $\\frac{n}{2n+1}\\to\\frac12<1$; **converges**.',
+        '(d) Alternating: AST ($\\frac1{\\ln n}\\downarrow0$) converges; $\\sum\\frac1{\\ln n}\\ge\\sum\\frac1n$ diverges, so **conditionally convergent**.',
+      ],
+      note: 'Four series, four tests: this is the Exam 2 / final series block in miniature.',
+    },
   ],
   traps: [
     'Under-preparing integration because it feels like old material. It is a third of the paper.',
     'Neglecting polar and parametric because they were taught in the last week.',
+    'Using the Ratio Test on (b): $L=1$, inconclusive. Rational terms need Limit Comparison.',
   ],
   drill: ['techniques/Strategy for Integration', 'series/Choosing a Test', 'series/Taylor & Maclaurin Series',
     'series/Power Series & Radius', 'applications/Arc Length', 'polar/Polar Area & Arc Length', 'polar/Parametric Calculus'],
 });
+
+// Per-lesson rewrites (run fin): layer onto the old lesson with the same id.
+// A rewrite only sets teaching fields; n/title/dates/unit/checkins/drill/exam stay unless it sets them.
+for (const r of REWRITES) {
+  const old = L.find(x => x.id === r.id);
+  if (old) Object.assign(old, r);
+}
+
+/** Fixed practice ladders, flat, each item tagged with its lesson. Order = ladder order. */
+export const LESSON_PRACTICE = L.flatMap(l => l.plain ? (l.practice || []).map(p => ({ ...p, lesson: l.id })) : []);
 
 export const LESSONS = L;
 export const lessonById = id => L.find(x => x.id === id) || null;

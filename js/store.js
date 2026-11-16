@@ -2,6 +2,7 @@
 // store.js — progress, mastery, spaced repetition, and everything
 // else that has to survive a page reload.
 // ---------------------------------------------------------------
+import { lessonById } from './bank/lessons.js';
 const KEY = 'calctutor.v1';   // key kept stable; `v` field carries the schema version
 const SCHEMA = 2;
 
@@ -17,6 +18,7 @@ const DEFAULTS = () => ({
   achievements: [],  // unlocked ids
   exam: { date: null, name: '' },
   lessons: {},       // lessonId -> {read: ts, drilled: n}
+  recent: [],        // last ~60 served templates: {k: gid|id, a: arch}
   day: { last: null, count: 0, best: 0 },
   totals: { answered: 0, right: 0, best: 0, secs: 0 },
   settings: {
@@ -28,6 +30,7 @@ const DEFAULTS = () => ({
     adaptive: true,      // ramp difficulty with mastery
     hints: true,
     sound: false,
+    freeShare: 0.3,      // share of auto-convertible MC served as free response (0 off, .3 some, .6 most)
   },
 });
 
@@ -137,6 +140,14 @@ if (typeof window !== 'undefined') {
 export const state = () => S;
 export const settings = () => S.settings;
 export function setSetting(k, v) { S.settings[k] = v; save(); }
+
+// cross-session memory of which templates were served (anti-repeat)
+export const recent = () => S.recent;
+export function pushRecent(k, a) {
+  S.recent.push({ k, a: a || '' });
+  if (S.recent.length > 60) S.recent.splice(0, S.recent.length - 60);
+  save();
+}
 
 export function skill(key) {
   if (!S.skills[key]) S.skills[key] = { seen: 0, right: 0, streak: 0, level: 0, due: 0, ease: 2.3, lastTs: 0, ms: 0 };
@@ -305,7 +316,30 @@ export function markLessonDrilled(id) {
   if (!l.read) l.read = Date.now();
   S.lessons[id] = l; save();
 }
-export function lessonDone(id) { const l = lesson(id); return !!l.read && l.drilled > 0; }
+/** Fixed-ladder progress: ladder[itemId] = 1 (latest answer right) | 0 (wrong). */
+export function recordLadder(id, itemId, right) {
+  const l = S.lessons[id] || { read: 0, drilled: 0 };
+  (l.ladder = l.ladder || {})[itemId] = right ? 1 : 0;
+  S.lessons[id] = l; save();
+}
+export function ladderStats(id) {
+  const def = lessonById(id);
+  const items = def && def.plain ? (def.practice || []) : [];
+  const lad = (S.lessons[id] || {}).ladder || {};
+  return {
+    n: items.length,
+    tried: items.filter(p => p.id in lad).length,
+    right: items.filter(p => lad[p.id] === 1).length,
+    ladder: lad,
+  };
+}
+export function lessonDone(id) {
+  const l = lesson(id);
+  if (!l.read) return false;
+  const st = ladderStats(id);
+  // intent: done = attempted every ladder item (right or wrong), not all correct
+  return st.n ? st.tried === st.n : l.drilled > 0;
+}
 
 export function setExam(date, name) { S.exam = { date: date || null, name: name || '' }; save(); }
 export const exam = () => S.exam;

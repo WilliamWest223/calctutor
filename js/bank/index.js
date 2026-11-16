@@ -15,6 +15,11 @@ import { taylor } from './taylor.js';
 import { wide } from './wide.js';
 import { mockExam3 } from './mock3.js';
 import { mockFinal } from './mockf.js';
+import { xtaylor } from './x_taylor.js';
+import { xseries } from './x_series.js';
+import { xinteg } from './x_integ.js';
+import { xmisc } from './x_misc.js';
+import { LESSON_PRACTICE } from './lessons.js';
 
 export const UNITS = [
   {
@@ -81,7 +86,7 @@ export const unitOfSkill = s => s.split('/')[0];
 export const topicOfSkill = s => s.split('/').slice(1).join('/');
 
 // ---- registry ---------------------------------------------------
-const SOURCES = [precalc, foundations, techniques, applications, diffeq, seriesUnit, polar, exams, checkins, taylor, wide, mockExam3, mockFinal];
+const SOURCES = [precalc, foundations, techniques, applications, diffeq, seriesUnit, polar, exams, checkins, taylor, wide, mockExam3, mockFinal, xtaylor, xseries, xinteg, xmisc, { problems: LESSON_PRACTICE }];
 
 export const STATIC = [];
 export const GENS = [];
@@ -145,9 +150,10 @@ export function seedRef(ref, salt) {
 export function normalize(p, ref) {
   p.ref = ref || (p.id ? { id: p.id } : null);
   const seen = new Set();
+  const ordered = p.fmt === 'error';        // "Line 1 … No error" keeps its authored order
   p.choices = (p.choices || []).filter(Boolean)
     .map(c => (typeof c === 'string' ? { t: c } : c))
-    .sort((a, b) => (b.ok ? 1 : 0) - (a.ok ? 1 : 0))     // keep the key if a distractor collides
+    .sort((a, b) => ordered ? 0 : (b.ok ? 1 : 0) - (a.ok ? 1 : 0))     // keep the key if a distractor collides
     .filter(c => { const k = String(c.t).replace(/\s+/g, ''); if (seen.has(k)) return false; seen.add(k); return true; });
   if (!p.choices.some(c => c.ok) && p.choices.length) p.choices[0].ok = true;
 
@@ -157,7 +163,7 @@ export function normalize(p, ref) {
   // after the dedupe sort. Seeded from the ref so re-materializing the SAME
   // problem (mistake bank, exam review) reproduces the ordering and any
   // stored answer index still points at the same option.
-  p.choices = p.tf
+  p.choices = (p.tf || ordered)
     ? p.choices.sort((a, b) => (a.t === 'True' ? -1 : 1) - (b.t === 'True' ? -1 : 1))
     : rng(hash(refKey(p.ref))).shuffle(p.choices);
 

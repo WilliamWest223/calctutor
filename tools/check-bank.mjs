@@ -17,6 +17,9 @@ import { OFF_SYLLABUS } from '../js/bank/course.js';
 import { DIFF_BAND } from '../js/session.js';
 import { STATIC, GENS, materialize, LIVE_SKILLS, ALL_SKILLS } from '../js/bank/index.js';
 import { build as buildViz } from '../js/viz.js';
+import { normalize } from '../js/bank/index.js';
+import { FIXTURES } from './fmt-fixtures.mjs';
+import { isCheckable } from '../js/mathcheck.js';
 
 // 40 was far too thin — collisions between a distractor formula and the answer
 // can occur for only one parameter combination in a thousand. The UI picks
@@ -35,7 +38,13 @@ function check(p, label) {
   if (!p) { errs.push(`${label}: failed to materialize`); return; }
 
   const keys = p.choices.filter(c => c.ok);
-  if (keys.length !== 1) errs.push(`${label}: ${keys.length} correct choices (need exactly 1)`);
+  const multi = p.fmt === 'multi';
+  if (multi ? keys.length < 2 : keys.length !== 1) errs.push(`${label}: ${keys.length} correct choices (need ${multi ? '2+' : 'exactly 1'})`);
+  if (multi && p.choices.some(c => !c.why)) errs.push(`${label}: multi choice with no why`);
+  if (multi && p.choices.length > 6) errs.push(`${label}: multi needs 4-6 choices`);
+  if (p.fmt === 'error' && !(p.work && p.work.length)) errs.push(`${label}: error item has no work lines`);
+  if (p.fmt === 'free' && !isCheckable(p.choices) && !(p.accept && p.accept.length)) warns.push(`${label}: free item key not mathcheck-parseable and no accept`);
+  if (p.fmt && !p.arch) errs.push(`${label}: new-format item needs arch`);
   const want = p.tf ? 2 : 4;                      // true/false questions have exactly two
   if (p.choices.length < want) errs.push(`${label}: only ${p.choices.length} choices — a collision dropped a distractor`);
   if (p.tf && p.choices.length !== 2) errs.push(`${label}: a true/false question must have exactly 2 choices`);
@@ -60,6 +69,7 @@ function check(p, label) {
   }
 }
 
+for (const f of FIXTURES) check(normalize({ ...f, skill: `${f.unit}/${f.topic}` }), `fixture:${f.id}`);
 for (const p of STATIC) check(materialize({ id: p.id }), `written:${p.id}`);
 for (const g of GENS) {
   for (let s = 1; s <= SEEDS; s++) check(materialize({ gid: g.id, seed: (Math.imul(s, 2654435761) >>> 0) }), `gen:${g.id}#${s}`);

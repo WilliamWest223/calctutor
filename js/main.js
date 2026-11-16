@@ -12,6 +12,7 @@ import { LIVE_SKILLS } from './bank/index.js';
 import * as bank from './bank/index.js';
 import * as lessons from './bank/lessons.js';
 import * as course from './bank/course.js';
+import { setNav as setLessonNav } from './lessonmap.js';
 
 const app = document.getElementById('app');
 
@@ -61,6 +62,7 @@ function nav(route) {
 }
 ui.setNav(nav);
 screens.setNav(nav);
+setLessonNav(nav);
 
 // ---------------------------------------------------------------
 function openOverlay(node) {
@@ -97,7 +99,8 @@ function startDrill(route) {
       { label: 'Start Rapid Fire', fn: () => nav({ v: 'drill', mode: 'rapid' }) }));
   }
 
-  S = sess.build({ mode, scope, count: route.count, refs: route.refs });
+  S = sess.build({ mode, scope, count: route.count, refs: route.refs, freeShare: route.freeShare });
+  S.lessonId = route.lessonId || null;
   S.bankStart = store.missed().length;
   S.seen = [];
   if (!sess.currentProblem(S)) {
@@ -115,6 +118,7 @@ function ask() {
   render(view.root);
   state = 'asking';
   askedAt = Date.now();
+  if (p.fmt === 'free' && view.entry) view.entry.focus({ preventScroll: true });
   if (S.cfg.timed && store.settings().timed) startTimer(S.cfg.secs);
 }
 
@@ -144,7 +148,12 @@ function toggleStar() {
 function submitOwn(text) {
   if (state !== 'asking' || !S || !S.current) return;
   const p = S.current;
-  const res = checkTyped(text, p.choices);
+  let res = checkTyped(text, p.choices);
+  // extra accepted prose forms (free-response items)
+  const nt = String(text).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  if (res.status !== 'correct' && (p.accept || []).some(a => String(a).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim() === nt)) {
+    res = { status: 'correct', index: p.choices.findIndex(c => c.ok), note: '' };
+  }
 
   // The checker refusing to decide is OUR limitation, not a wrong answer —
   // never grade it against the student.
@@ -169,9 +178,17 @@ function submitOwn(text) {
 
 function answer(i) {
   if (state !== 'asking') return;
+  const p = S.current;
+  if (p.fmt === 'free') return;                       // free response: typed answer only
+  if (p.fmt === 'multi') {                            // toggle; Enter / button submits
+    if (i === 'submit') {
+      const picked = view.picked();
+      if (!picked.length) return toast('Select at least one');
+      i = picked;
+    } else return view.toggle(i);
+  }
   stopTimer();
   state = 'revealed';
-  const p = S.current;
   const ms = Date.now() - askedAt;
   const correct = sess.grade(S, p, i, ms, hintLevel > 0);
 
@@ -180,7 +197,8 @@ function answer(i) {
     next();
     return;
   }
-  ui.reveal(view, p, i, correct, { next, star: toggleStar });
+  ui.reveal(view, p, Array.isArray(i) ? (p.choices.findIndex((c, j) => c.ok !== i.includes(j))) : i, correct,
+    { next, star: toggleStar, picked: Array.isArray(i) ? i : null });
 }
 
 function next() {
@@ -197,7 +215,9 @@ function endSession() {
   const stats = sess.finish(S);
   state = 'idle';
   const handlers = {
-    again: () => nav({ v: 'drill', mode: S.cfg.key, scope: S.scope }),
+    again: () => nav(S.lessonId ? lastRoute : { v: 'drill', mode: S.cfg.key, scope: S.scope }),
+    lesson: S.lessonId ? () => nav({ v: 'lesson', id: S.lessonId }) : null,
+    nextLesson: S.lessonId ? (() => { const i = lessons.LESSONS.findIndex(x => x.id === S.lessonId); const nx = lessons.LESSONS[i + 1]; return nx ? { title: nx.title, go: () => nav({ v: 'lesson', id: nx.id }) } : null; })() : null,
     mistakes: () => nav({ v: 'drill', mode: 'mistakes' }),
     home: () => nav({ v: 'home' }),
     drillTopic: sk => nav({ v: 'drill', mode: 'topic', scope: sk }),
@@ -278,7 +298,10 @@ window.addEventListener('keydown', e => {
   if (state === 'asking' && S) {
     const n = S.current.choices.length;
     const num = parseInt(e.key, 10);
-    if (num === n + 1 && view && view.entry && !S.current.tf) {   // the write-your-own slot
+    const fm = S.current.fmt;
+    if (fm === 'free') return;                                    // typing only
+    if (fm === 'multi' && e.key === 'Enter') { e.preventDefault(); return answer('submit'); }
+    if (num === n + 1 && view && view.entry && !S.current.tf && fm !== 'multi' && fm !== 'error') {   // the write-your-own slot
       e.preventDefault(); view.entry.focus(); return;
     }
     if (num >= 1 && num <= n) { e.preventDefault(); return answer(num - 1); }

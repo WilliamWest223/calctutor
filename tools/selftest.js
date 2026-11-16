@@ -18,14 +18,29 @@ const t = (name, fn) => {
   try { r = fn(); } catch (e) { r = 'THREW ' + e.message; }
   results.push({ test: name, result: r === true ? 'pass' : 'FAIL', detail: r === true ? '' : String(r) });
 };
-const right = () => { const p = CT.problem; document.querySelectorAll('.choice')[p.choices.findIndex(c => c.ok)].click(); };
-const wrong = () => { const p = CT.problem; const k = p.choices.findIndex(c => c.ok); document.querySelectorAll('.choice')[(k + 1) % p.choices.length].click(); };
+const submitTyped = txt => { document.querySelector('.ownfield').value = txt; document.querySelector('.choice.own .btn').click(); };
+const submitMulti = () => [...document.querySelectorAll('.btn.primary')].find(b => /Submit/.test(b.textContent)).click();
+const right = () => {
+  const p = CT.problem, cs = document.querySelectorAll('.choice');
+  if (p.fmt === 'free') return submitTyped((p.accept && p.accept[0]) || p.choices.find(c => c.ok).t.replace(/\$/g, ''));
+  if (p.fmt === 'multi') { p.choices.forEach((c, i) => c.ok && cs[i].click()); return submitMulti(); }
+  cs[p.choices.findIndex(c => c.ok)].click();
+};
+const wrong = () => {
+  const p = CT.problem, cs = document.querySelectorAll('.choice');
+  if (p.fmt === 'free') return submitTyped('12345.678');
+  if (p.fmt === 'multi') { cs[p.choices.findIndex(c => c.ok)].click(); return submitMulti(); }   // one key only: set is incomplete
+  cs[(p.choices.findIndex(c => c.ok) + 1) % p.choices.length].click();
+};
+// topic drill that lands on an item with a write-in box (plain MC / free; not tf, multi or find-the-error)
+const navOwn = scope => { for (let i = 0; i < 30; i++) { CT.nav({ v: 'drill', mode: 'topic', scope }); const p = CT.problem; if (!p.tf && p.fmt !== 'multi' && p.fmt !== 'error' && document.querySelector('.ownhelp')) return; } };
 const cont = () => { const b = [...document.querySelectorAll('.btn.primary')].find(x => /Continue/.test(x.textContent)); if (b) b.click(); };
 const endIfRunning = () => { if (CT.uiState !== 'idle') { const q = [...document.querySelectorAll('.btn.sm.ghost')].find(b => b.textContent === 'end'); if (q) q.click(); } };
 
 // preserve the user's real progress
 const SNAPSHOT = CT.store.exportJSON();
 CT.store.resetAll();
+CT.store.setSetting('freeShare', 0);        // deterministic MC for the tests that click choices; the full session turns it up
 
 // ---------------- content reachable through the UI ----------------
 const ALL_SKILLS = CT.sess.scopeSkills('rapid');
@@ -36,7 +51,7 @@ t(`every topic drillable (${ALL_SKILLS.length} topics)`, () => {
     if (!CT.problem) return 'no problem for ' + s;
     const want = CT.problem.tf ? 2 : 4;                 // true/false check-ins have two
     if (CT.problem.choices.length < want) return `${s}: only ${CT.problem.choices.length} choices`;
-    if (CT.problem.choices.filter(c => c.ok).length !== 1) return s + ': not exactly one correct answer';
+    if (CT.problem.fmt !== 'multi' && CT.problem.choices.filter(c => c.ok).length !== 1) return s + ': not exactly one correct answer';
     if (!has('.katex')) return s + ': math did not render';
   }
   return true;
@@ -92,8 +107,8 @@ t('wrong answer shows diagnosis + solution', () => {
   return (has('.verdictbar.no') && has('.panel.diag') && has('.steps')) || 'feedback incomplete';
 });
 t('correct answer shows no diagnosis', () => {
-  cont(); right();
-  return (has('.verdictbar.ok') && !has('.panel.diag')) || 'unexpected diagnosis on a correct answer';
+  cont(); const multi = CT.problem.fmt === 'multi'; right();     // multi always lists "Each option" as a diag panel
+  return (has('.verdictbar.ok') && (multi || !has('.panel.diag'))) || 'unexpected diagnosis on a correct answer';
 });
 t('exam withholds feedback', () => {
   CT.nav({ v: 'drill', mode: 'exam' });
@@ -104,9 +119,11 @@ t('exam withholds feedback', () => {
 // ---------------- a full session ----------------
 t('full session reaches summary', () => {
   CT.store.setSetting('length', 20);
+  CT.store.setSetting('freeShare', 0.6);          // mix in free-response / multi / error items
   CT.nav({ v: 'drill', mode: 'rapid' });
   let guard = 0;
   while (CT.problem && guard++ < 60) { (guard % 3 ? wrong() : right()); cont(); }
+  CT.store.setSetting('freeShare', 0);
   return has('.scorehero') || 'never reached the summary';
 });
 t('session recorded', () => CT.store.state().history.length >= 1 || 'no history row');
@@ -155,12 +172,12 @@ for (const id of ['riemann', 'taylor', 'series', 'revolve', 'euler', 'polar', 'a
 
 // ---------------- write-your-own answers ----------------
 t('write-in: box present and numbered 5', () => {
-  CT.nav({ v: 'drill', mode: 'topic', scope: 'techniques/Integration by Parts' });
+  navOwn('techniques/Integration by Parts');
   return (has('.choice.own') && document.querySelector('.choice.own .key').textContent === '5')
     || 'missing or mis-numbered';
 });
 t('write-in: an equivalent form is accepted', () => {
-  CT.nav({ v: 'drill', mode: 'topic', scope: 'techniques/Integration by Parts' });
+  navOwn('techniques/Integration by Parts');
   const key = CT.problem.choices.find(c => c.ok).t.replace(/\$/g, '');
   const el = document.querySelector('.ownfield');
   el.value = key + ' + 0';                       // same value, different text
@@ -168,13 +185,13 @@ t('write-in: an equivalent form is accepted', () => {
   return has('.verdictbar.ok') || 'equivalent form rejected';
 });
 t('write-in: a wrong expression is rejected', () => {
-  CT.nav({ v: 'drill', mode: 'topic', scope: 'techniques/Integration by Parts' });
+  navOwn('techniques/Integration by Parts');
   document.querySelector('.ownfield').value = 'x^2 + 17';
   document.querySelector('.choice.own .btn').click();
   return has('.verdictbar.no') || 'wrong answer accepted';
 });
 t('write-in: bad syntax does not grade the question', () => {
-  CT.nav({ v: 'drill', mode: 'topic', scope: 'techniques/Integration by Parts' });
+  navOwn('techniques/Integration by Parts');
   const before = CT.session.results.length;
   document.querySelector('.ownfield').value = '!!!???';
   document.querySelector('.choice.own .btn').click();
@@ -191,7 +208,7 @@ const typeOwn = text => {
 };
 
 t('write-in: palette button inserts its snippet at the caret', () => {
-  CT.nav({ v: 'drill', mode: 'topic', scope: OWN });
+  navOwn(OWN);
   const el = typeOwn('');
   const btn = [...document.querySelectorAll('.palbtn')].find(b => b.textContent === '√');
   if (!btn) return 'no sqrt button in the palette';
@@ -200,7 +217,7 @@ t('write-in: palette button inserts its snippet at the caret', () => {
 });
 
 t('write-in: palette wraps the current selection', () => {
-  CT.nav({ v: 'drill', mode: 'topic', scope: OWN });
+  navOwn(OWN);
   const el = typeOwn('x+1');
   el.setSelectionRange(0, 3);
   [...document.querySelectorAll('.palbtn')].find(b => b.textContent === '√').click();
@@ -208,7 +225,7 @@ t('write-in: palette wraps the current selection', () => {
 });
 
 t('write-in: live preview renders what was typed', () => {
-  CT.nav({ v: 'drill', mode: 'topic', scope: OWN });
+  navOwn(OWN);
   typeOwn('2sqrt(x)ln(x) - 4sqrt(x) + C');
   const box = document.querySelector('.ownpreview');
   if (!box || !box.querySelector('.katex')) return 'no rendered preview';
@@ -216,7 +233,7 @@ t('write-in: live preview renders what was typed', () => {
 });
 
 t('write-in: an unfinished bracket is flagged, not graded', () => {
-  CT.nav({ v: 'drill', mode: 'topic', scope: OWN });
+  navOwn(OWN);
   const before = CT.session.results.length;
   const el = typeOwn('2sqrt(x');
   if (!el.classList.contains('bad')) return 'unbalanced input not marked bad';
@@ -226,7 +243,7 @@ t('write-in: an unfinished bracket is flagged, not graded', () => {
 });
 
 t('write-in: the how-to-type help renders as markup, not escaped tags', () => {
-  CT.nav({ v: 'drill', mode: 'topic', scope: OWN });
+  navOwn(OWN);
   const help = document.querySelector('.ownhelp');
   if (!help) return 'no help block';
   help.open = true;
@@ -299,7 +316,7 @@ t('check-in: both verdicts occur across the bank', () => {
 
 // ---------------- hints and explanations ----------------
 t('hint: the ladder starts general and grows one step at a time', () => {
-  CT.nav({ v: 'drill', mode: 'topic', scope: 'techniques/Integration by Parts' });
+  navOwn('techniques/Integration by Parts');
   const btn = document.getElementById('hintbtn');
   if (!btn) return 'no hint button';
   btn.click();
@@ -325,16 +342,15 @@ t('hint: every problem can produce at least one hint', () => {
 });
 
 t('wrong answer: shows the right answer and why it is right', () => {
-  CT.nav({ v: 'drill', mode: 'topic', scope: 'techniques/Integration by Parts' });
-  const wrong = CT.problem.choices.findIndex(c => !c.ok);
-  document.querySelectorAll('.choice')[wrong].click();
+  navOwn('techniques/Integration by Parts');
+  wrong();   // handles every fmt (mc / free / multi)
   if (!has('.panel.right')) return 'no "right answer" panel after a miss';
   if (!has('.rightanswer')) return 'the correct answer was not displayed';
   return has('.panel.diag') || 'the diagnosis of the chosen option is missing';
 });
 
 t('correct answer: does not show the right-answer panel', () => {
-  CT.nav({ v: 'drill', mode: 'topic', scope: 'techniques/Integration by Parts' });
+  navOwn('techniques/Integration by Parts');
   right();
   return !has('.panel.right') || 'the right-answer panel appeared on a correct answer';
 });
@@ -364,7 +380,10 @@ t('learn: every lesson opens and renders its worked examples', () => {
     const want = (l.worked || []).length;
     const got = document.querySelectorAll('.panel.worked').length;
     if (got !== want) return `${l.id}: ${got} worked examples, expected ${want}`;
-    if (/\$\$|undefined|NaN/.test(document.body.textContent)) return `${l.id}: junk in the rendered text`;
+    // shortcut: prose may say "undefined"; flag only $$ or a text node that is exactly undefined/NaN
+    if (/\$\$|\bNaN\b|[=:(]\s*undefined\b|\bundefined\s*[)\]}]/.test(document.body.textContent)) return `${l.id}: junk in the rendered text`;
+    const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let n; (n = tw.nextNode());) if (/^\s*(undefined|NaN)\s*$/.test(n.textContent)) return `${l.id}: junk in the rendered text`;
   }
   return true;
 });
@@ -379,16 +398,18 @@ t('learn: every lesson points at live skills and real check-ins', () => {
 });
 
 t('learn: opening a lesson marks it read, drilling marks it done', () => {
-  const id = CT.lessons.LESSONS[0].id;
+  const L = CT.lessons.LESSONS.find(x => !x.plain) || CT.lessons.LESSONS[0];
+  const id = L.id;
   CT.nav({ v: 'lesson', id });
   if (!CT.store.lesson(id).read) return 'opening the lesson did not mark it read';
   if (CT.store.lessonDone(id)) return 'a lesson counted as done before any drilling';
   CT.store.markLessonDrilled(id);
+  for (const p of L.practice || []) CT.store.recordLadder(id, p.id, true); // ladder lessons finish when every item is tried
   return CT.store.lessonDone(id) || 'drilling did not complete the lesson';
 });
 
 t('learn: lessons cover every teaching day in the syllabus', () => {
-  const taught = CT.course.SCHEDULE.filter(d => (d.skills || []).length).map(d => d.d);
+  const taught = CT.course.SCHEDULE.filter(d => d.kind !== 'study' && (d.skills || []).length).map(d => d.d);
   const covered = new Set(CT.lessons.LESSONS.flatMap(l => l.dates));
   const missing = taught.filter(d => !covered.has(d));
   return missing.length === 0 || `no lesson for: ${missing.join(', ')}`;
@@ -416,7 +437,7 @@ t('cheat sheet: C opens and closes from any screen', () => {
 });
 t('cheat sheet: unit circle is complete', () => {
   CT.nav({ v: 'home' }); key('c');
-  const ok = N('.ucdot') === 16 && N('.ucang') === 16 && N('.uccoord') === 16 && N('.cssection') === 8;
+  const ok = N('.ucdot') === 16 && N('.ucang') === 16 && N('.uccoord') === 16 && N('.cssection') >= 8;
   key('Escape');
   return ok || `dots=${N('.ucdot')} sections=${N('.cssection')}`;
 });

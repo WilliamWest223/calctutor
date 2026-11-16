@@ -315,6 +315,8 @@ function bump(kind, field) {
 }
 
 function verify(p, label) {
+  if (p.fmt === 'multi' || p.fmt === 'error') { skip('multi/error format'); return; }
+  if (/do not compute|which first step|which set-?up/i.test(p.prompt)) { skip('asks for a method/set-up, not a value'); return; }
   const info = classify(p.prompt);
   if (!info) { skip('prompt is not a computable integral/derivative/limit'); return; }
 
@@ -400,6 +402,7 @@ function verify(p, label) {
     const kv = numberFrom(keyTex);
     const k0 = numberFrom(info.from);
     if (!a) { skip('series term did not parse'); return; }
+    if (/\\lim|smallest|bound|error|Comparison|how many/i.test(p.prompt)) { skip('series prompt asks for a limit/N/bound, not the sum'); return; }
 
     // The key may state a verdict rather than a value. "Conditionally
     // convergent" and "absolutely convergent" both mean the series converges.
