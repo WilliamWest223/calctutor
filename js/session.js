@@ -50,9 +50,13 @@ export const MODES = {
     blurb: 'Only what Dr. McWhorter has actually lectured on to date. Nothing you have not seen yet.',
   },
   examscope: {
-    key: 'examscope', name: 'Exam Practice', glyph: '✦', accent: 'coral', count: 20, timed: true, secs: 150,
+    key: 'examscope', name: 'Exam Drill', glyph: '✦', accent: 'violet', count: 20, timed: false,
+    blurb: 'One question, one answer: instant feedback and a running score, scoped to one of his exams.',
+  },
+  mock: {
+    key: 'mock', name: 'Mock Exam', glyph: '⏱', accent: 'coral', count: 20, timed: true, secs: 150,
     defer: true,
-    blurb: 'Timed, no feedback until the end, scoped to one of his real exams.',
+    blurb: 'Timed, no feedback until the end — graded and reviewed when you finish.',
   },
   lesson: {
     key: 'lesson', name: 'Lesson Practice', glyph: '☰', accent: 'lime', count: 14, timed: false,
@@ -196,6 +200,28 @@ function refFor(skillKey, used, salt, opts = {}, ctx) {
   return best.ref;
 }
 
+/** Mock exams for exam `examId`: a fresh generated paper (always) plus any
+ *  authored mocks in the bank (ids <pre>-q1, <pre>-q1a ...). Run in `mock` mode. */
+const AUTHORED_MOCKS = {
+  3: [['m3a', 'Mock A'], ['m3b', 'Mock B'], ['m3c', "Mock C · Spring '26 replica"], ['m3d', 'Mock D']],
+  0: [['mfa', 'Mock A'], ['mfb', 'Mock B']],
+};
+export function mocksFor(examId) {
+  const refsOf = pre => {
+    const r = [];
+    for (let i = 1; i < 30; i++) {
+      const ids = ['', ...'abcdefgh'].map(s => `${pre}-q${i}${s}`).filter(id => materialize({ id }));
+      if (!ids.length) break;
+      ids.forEach(id => r.push({ id }));
+    }
+    return r;
+  };
+  const authored = (AUTHORED_MOCKS[examId] || [])
+    .map(([pre, label]) => ({ label, route: { v: 'drill', mode: 'mock', scope: examId, refs: refsOf(pre) } }))
+    .filter(m => m.route.refs.length);
+  return [{ label: 'Random mock', route: { v: 'drill', mode: 'mock', scope: examId } }, ...authored];
+}
+
 /** Skills for a given mode/scope. */
 /** Skills that count as "on the syllabus" — used for the default drill pool. */
 export const SYLLABUS_SKILLS = LIVE_SKILLS.filter(s => !OFF_SYLLABUS[s.split('/')[0]]);
@@ -208,7 +234,7 @@ export function scopeSkills(mode, scope) {
     const c = coveredSkills().filter(s => LIVE_SKILLS.includes(s));
     return c.length ? c : SYLLABUS_SKILLS;
   }
-  if (mode === 'examscope') {
+  if (mode === 'examscope' || mode === 'mock') {
     const e = examById(scope);
     return e ? e.skills.filter(s => LIVE_SKILLS.includes(s)) : SYLLABUS_SKILLS;
   }
@@ -267,7 +293,7 @@ export function build({ mode, scope, count, difficulty, adaptive, refs, freeShar
     return session(cfg, queue, scope, opts);
   }
 
-  if (mode === 'exam' || mode === 'examscope') {
+  if (mode === 'exam' || mode === 'examscope' || mode === 'mock') {
     // proportional spread across units, so the sim always covers the course
     const inScope = new Set(skills);
     const units = UNITS.filter(u => liveSkillsOf(u.key).some(s => inScope.has(s)));

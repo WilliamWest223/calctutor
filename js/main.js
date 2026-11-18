@@ -101,6 +101,7 @@ function startDrill(route) {
 
   S = sess.build({ mode, scope, count: route.count, refs: route.refs, freeShare: route.freeShare });
   S.lessonId = route.lessonId || null;
+  S.fromRefs = !!(route.refs && route.refs.length);
   S.bankStart = store.missed().length;
   S.seen = [];
   if (!sess.currentProblem(S)) {
@@ -215,7 +216,7 @@ function endSession() {
   const stats = sess.finish(S);
   state = 'idle';
   const handlers = {
-    again: () => nav(S.lessonId ? lastRoute : { v: 'drill', mode: S.cfg.key, scope: S.scope }),
+    again: () => nav(S.lessonId || S.fromRefs ? lastRoute : { v: 'drill', mode: S.cfg.key, scope: S.scope }),
     lesson: S.lessonId ? () => nav({ v: 'lesson', id: S.lessonId }) : null,
     nextLesson: S.lessonId ? (() => { const i = lessons.LESSONS.findIndex(x => x.id === S.lessonId); const nx = lessons.LESSONS[i + 1]; return nx ? { title: nx.title, go: () => nav({ v: 'lesson', id: nx.id }) } : null; })() : null,
     mistakes: () => nav({ v: 'drill', mode: 'mistakes' }),

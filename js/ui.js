@@ -8,9 +8,8 @@ import { primerFor } from './bank/primers.js';
 import { COURSE, EXAMS, GATEWAYS, courseToday, nextAssessment, coveredSkills, OFF_SYLLABUS, LIGHT_COVERAGE } from './bank/course.js';
 import { LESSONS } from './bank/lessons.js';
 import { lessonsForExam, lessonForSkill, lessonLink } from './lessonmap.js';
-import { materialize } from './bank/index.js';
 import * as store from './store.js';
-import { MODES } from './session.js';
+import { MODES, mocksFor } from './session.js';
 import { build as buildViz } from './viz.js';
 import { isCheckable, previewInput } from './mathcheck.js';
 
@@ -88,7 +87,7 @@ export function home() {
       h('span.flex'),
       na && na.kind === 'exam' && h('button.btn.sm', {
         onclick: e => { e.stopPropagation(); nav({ v: 'drill', mode: 'examscope', scope: na.id }); },
-      }, `Practise ${na.name} →`),
+      }, `Drill ${na.name} →`),
     ));
   }
 
@@ -96,9 +95,6 @@ export function home() {
   if (na && na.kind === 'exam') {
     const ls = lessonsForExam(na.id);
     const firstOpen = ls.find(l => !store.lessonDone(l.id));
-    const mockRefs = pre => { const r = []; for (let i = 1; i < 30; i++) { const ids = ['', ...'abcdefgh'].map(s => `${pre}-q${i}${s}`).filter(id => materialize({ id })); if (!ids.length) break; ids.forEach(id => r.push({ id })); } return r; };
-    const mocks = (na.id === 3 ? ['m3a', 'm3b', 'm3c', 'm3d'] : na.id === 0 ? ['mfa', 'mfb'] : [])
-      .map((p, i) => ({ label: p === 'm3c' ? "Mock C · Spring '26 replica" : `Mock ${'ABCD'[i]}`, refs: mockRefs(p) })).filter(m => m.refs.length);
     wrap.appendChild(h('div.panel.examhub',
       h('div.eyebrow', `${na.name} hub · ${plural(na.days, 'day')} left`),
       h('div.hubles', ...ls.map(l => h('span.planchip' + (store.lessonDone(l.id) ? '.done' : ''),
@@ -108,7 +104,7 @@ export function home() {
       h('div.row',
         firstOpen && h('button.btn.sm.primary', { onclick: () => nav({ v: 'lesson', id: firstOpen.id }) }, `Continue: ${firstOpen.title} →`),
         h('button.btn.sm' + (firstOpen ? '' : '.primary'), { onclick: () => nav({ v: 'drill', mode: 'examscope', scope: na.id }) }, `Drill ${na.name}`),
-        ...mocks.map(m => h('button.btn.sm', { onclick: () => nav({ v: 'drill', mode: 'custom', refs: m.refs, skills: [] }) }, m.label)))));
+        ...mocksFor(na.id).map(m => h('button.btn.sm', { title: 'No feedback until the end', onclick: () => nav(m.route) }, m.label)))));
   }
 
   // ---- the learn program, and what the course has already covered
@@ -182,7 +178,7 @@ export function home() {
       style: past ? { opacity: .55 } : null,
     },
       h('span.glyph', '✦'),
-      h('h3', e.name),
+      h('h3', `Drill ${e.name}`),
       h('p', e.blurb),
       h('span.badge' + (past ? '' : '.live'), fmtDay(e.date))));
   }
@@ -370,6 +366,11 @@ export function drill(S, handlers) {
     h('button.iconbtn.star' + (starred ? '.on' : ''), {
       title: 'Star this problem  (S)', onclick: handlers.star,
     }, starred ? '★' : '☆'),
+    !cfg.defer && (() => {
+      const right = S.results.filter(r => r.correct).length;
+      return h('span.qcount.score', { title: 'Your score so far this session' },
+        done ? `score ${right}/${done} · ${Math.round((100 * right) / done)}%` : 'score 0/0');
+    })(),
     !cfg.defer && h('div.streakbox' + (S.run ? '' : '.zero'), S.run ? '🔥' : '○', `${S.run} in a row`),
     h('button.btn.sm.ghost', { onclick: handlers.quit }, 'end'),
   ));

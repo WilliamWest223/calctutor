@@ -10,7 +10,7 @@ import { EXPLORERS, explorerById, initialState } from './explore.js';
 import { COURSE, SCHEDULE, EXAMS, GATEWAYS, courseToday, nextAssessment, coveredSkills } from './bank/course.js';
 import { LESSONS, lessonById, byWeek } from './bank/lessons.js';
 import * as store from './store.js';
-import { MODES } from './session.js';
+import { MODES, mocksFor } from './session.js';
 import { statbox } from './ui.js';
 import { examOfLesson } from './lessonmap.js';
 
@@ -239,8 +239,11 @@ export function plan() {
     box.appendChild(h('div.row',
       h('div.eyebrow', `${e.name} · ${fmtD(e.date)}`),
       h('span.flex'),
-      h('button.btn.sm', { onclick: () => nav({ v: 'drill', mode: 'examscope', scope: e.id }) }, 'Practise this →')));
+      h('button.btn.sm.primary', { title: 'Instant feedback, running score', onclick: () => nav({ v: 'drill', mode: 'examscope', scope: e.id }) }, `Drill ${e.name} →`)));
     box.appendChild(h('div', { style: { fontSize: '13.5px', margin: '8px 0' } }, e.blurb));
+    box.appendChild(h('div.row', { style: { gap: '6px', flexWrap: 'wrap', marginBottom: '8px' } },
+      h('span.dim', { style: { fontSize: '12.5px' } }, 'Mock exams (feedback at the end):'),
+      ...mocksFor(e.id).map(m => h('button.btn.sm', { onclick: () => nav(m.route) }, m.label))));
     box.appendChild(h('div.dim', { style: { fontSize: '12.5px', marginBottom: '10px' }, html: tex(e.note) }));
     box.appendChild(h('div.planitems', ...e.skills.filter(s => LIVE_SKILLS.includes(s)).map(sk =>
       h('span.planchip', { onclick: () => nav({ v: 'drill', mode: 'topic', scope: sk }) }, topicOfSkill(sk)))));
@@ -729,7 +732,8 @@ export function learn() {
     const box = h('div.weekblock');
     box.appendChild(h('div.weekhead', h('span.weekdate', `${e.name} · ${fmtDay(e.date)}`),
       h('span.flex'),
-      h('button.btn.sm.ghost', { onclick: () => nav({ v: 'drill', mode: 'examscope', scope: e.id }) }, 'Practise →')));
+      h('button.btn.sm.ghost', { onclick: () => nav({ v: 'drill', mode: 'examscope', scope: e.id }) }, 'Drill →'),
+      ...mocksFor(e.id).map(m => h('button.btn.sm.ghost', { title: 'Mock exam: feedback at the end', onclick: () => nav(m.route) }, m.label))));
     for (const l of list) {
       const row = lessonRow(l, today);
       rows.push({ row, box, text: (l.title + ' ' + (l.drill || []).join(' ')).toLowerCase() });
