@@ -110,6 +110,167 @@ Example: integrate. $\dfrac{1}{1+t^{2}}=\sum(-1)^{n}t^{2n}$. Integrate from $0$ 
 Use this when no algebra trick turns your function into one of the six, but its derivative or integral is one of them. A classic exam use: $\displaystyle\int_0^{x}e^{-t^{2}}\,dt$ has no elementary antiderivative, but its series is easy.`,
       check: { q: R`Integrate $\sum_{n=0}^{\infty}(-1)^{n}t^{2n}$ from $0$ to $x$. What is the new exponent?`, a: R`$2n+1$, with denominator $2n+1$: $\sum(-1)^{n}\dfrac{x^{2n+1}}{2n+1}$.` },
     },
+    // ---- ex3 interactive additions ----
+    {
+      h: 'Lab: why the radius is 1 for arctan and ln(1+x)',
+      body: R`Open the lab. Pick $\arctan x$ and raise the degree. Inside $|x|<1$ the polynomials hug the curve. Past $|x|=1$ they fly away, even though $\arctan x$ itself is perfectly tame. The function is fine there. The series is what breaks.
+
+Now slide "evaluate at" to $x=1$ and then $x=1.5$. At $1$ the sums settle (alternating series). At $1.5$ they blow up as the degree grows.`,
+      widget: { lab: 'taylor', set: { fn: 'arctan x', deg: 9, at: 1.5 }, caption: R`Raise the degree at $x=1.5$: the error grows. At $x=1$ it settles. Radius is $1$, and $[-1,1]$ is the interval.` },
+    },
+    {
+      h: 'Lab: ln(1+x) keeps one endpoint',
+      body: R`Switch to $\ln(1+x)$. Its series is $x-\frac{x^2}{2}+\frac{x^3}{3}-\cdots$. The function blows up at $x=-1$, so the series cannot work there. At $x=1$ the series is the alternating harmonic series, which converges to $\ln 2$.
+
+Set "evaluate at" to $1$ and raise the degree: the polynomials creep toward $\ln 2\approx0.69$. Set it to $1.5$: they diverge.`,
+      widget: { lab: 'taylor', set: { fn: 'ln(1+x)', deg: 8, at: 1.5 }, caption: R`At $x=1.5$ the polynomials move away from $\ln 2.5$. The interval is $(-1,1]$.` },
+      // src: buddy Q1 (interval column)
+      try: { q: R`Which function's Maclaurin series converges at $x=1$ but diverges at $x=-1$?`,
+        choices: [
+          { t: R`$\ln(1+x)$`, ok: true, why: R`At $x=1$ it is the alternating harmonic series (converges). At $x=-1$ it is $-\sum\frac1n$ (diverges). Interval $(-1,1]$.` },
+          { t: R`$\arctan x$`, why: R`Both endpoints converge by the alternating series test, so the interval is $[-1,1]$.` },
+          { t: R`$\dfrac{1}{1-x}$`, why: R`The terms $x^n$ do not go to $0$ at $x=\pm1$, so both endpoints diverge.` },
+          { t: R`$e^{x}$`, why: R`$e^x$ has no finite radius: it converges at every $x$, so it has no endpoint to fail.` },
+        ] },
+    },
+    {
+      h: 'Try: the Q1 table, first two nonzero terms',
+      body: R`Q1 asks for the first two NONZERO terms. Zero terms do not count. Find the first power that has a nonzero coefficient, then the next one.
+
+For $\ln(1+x)$ the pattern $f^{(n)}(0)$ starts at $n=1$. The $n=0$ value is $\ln 1=0$. So the first nonzero term is the $x$ term. Write the sigma first, plug in $n=1$ and $n=2$, and read off both terms. Do this for every row of the table.`,
+      // src: buddy Q1 (lost the point on ln(1+x): wrote cos x's terms 1 - x^2/2); the ln(1+x) row itself is tested in ln-exam3
+      try: { q: R`Same rule, another row: first two nonzero terms of the Maclaurin series of $\cos x$?`,
+        choices: [
+          { t: R`$1-\dfrac{x^{2}}{2}$`, ok: true, why: R`$\cos x=\sum(-1)^n\frac{x^{2n}}{(2n)!}$; $n=0,1$ give $1$ and $-\frac{x^2}{2!}=-\frac{x^2}{2}$. Odd powers are zero and skipped. This is exactly what the Spring '26 paper wrote for $\ln(1+x)$ and lost a point: $1-\frac{x^2}{2}$ belongs to $\cos x$. For $\ln(1+x)$ it is $x-\frac{x^2}{2}$.` },
+          { t: R`$x-\dfrac{x^{3}}{6}$`, why: R`That is $\sin x$. Cosine is even: $\cos0=1$, so the constant term is nonzero.` },
+          { t: R`$1+\dfrac{x^{2}}{2}$`, why: R`Signs alternate: $(-1)^n$ makes the $x^2$ term negative.` },
+          { t: R`$1-x^{2}$`, why: R`Missing the $2!$: the $x^2$ coefficient is $-\frac{1}{2!}$.` },
+        ] },
+    },
+    {
+      h: 'Try: arctan first terms (not sine)',
+      body: R`Odd functions have only odd powers. So the first two nonzero terms skip the even powers.
+
+Sine and arctan both have odd powers. They differ in the denominator: sine has $(2n+1)!$ and arctan has plain $2n+1$. Plug in $n=0$ and $n=1$ to get the two terms. Compare the second term to the three similar-looking series before you answer.`,
+      // src: buddy Q1 (sin, arctan rows)
+      try: { q: R`First two nonzero terms of the Maclaurin series of $\arctan x$?`,
+        choices: [
+          { t: R`$x-\dfrac{x^{3}}{3}$`, ok: true, why: R`Sigma $\sum(-1)^n\frac{x^{2n+1}}{2n+1}$ at $n=0,1$ gives $x$ and $-\frac{x^3}{3}$. No factorial.` },
+          { t: R`$x-\dfrac{x^{3}}{3!}$`, why: R`That is the sine series. Arctan has plain $2n+1$ in the denominator, so $3$, not $3!=6$.` },
+          { t: R`$1-\dfrac{x^{2}}{2}$`, why: R`That looks like cosine. Arctan is odd, so it has no constant term.` },
+          { t: R`$x-\dfrac{x^{2}}{2}$`, why: R`That is $\ln(1+x)$. Arctan is odd, so the next power is $x^3$.` },
+        ] },
+    },
+    {
+      h: 'Try: exponents when you substitute and multiply',
+      body: R`Substitute first: exponents multiply. Then multiply by the outside factor: exponents add and the coefficient stays. Keep every constant in front.
+
+Do it in two clean steps. Step one: write the known series with $u$ in place of $x$. Step two: replace $u$ and simplify the exponent. Only then multiply by the outside factor. Check $n=0$: the first term should match the first term of the original function.`,
+      // src: buddy Q4a
+      try: { q: R`Maclaurin series of $2x\sin(x^{3})$?`,
+        choices: [
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{2(-1)^{n}x^{6n+4}}{(2n+1)!}$`, ok: true, why: R`$(x^3)^{2n+1}=x^{6n+3}$, times $x$ gives $x^{6n+4}$. The $2$ stays. First term $2x^4$.` },
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{6n+4}}{(2n+1)!}$`, why: R`Dropped the $2$. The coefficient from $2x$ must stay in the answer (the buddy lost it here).` },
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{2(-1)^{n}x^{6n+3}}{(2n+1)!}$`, why: R`Forgot to multiply by the outside $x$. $x\cdot x^{6n+3}=x^{6n+4}$.` },
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{2(-1)^{n}x^{3n+4}}{(2n+1)!}$`, why: R`Added $3$ to the exponent instead of multiplying: $(x^3)^{2n+1}=x^{3(2n+1)}=x^{6n+3}$.` },
+        ] },
+    },
+    {
+      h: 'Try: c over (a + x), fully simplified',
+      body: R`Pull out the constant so the bottom reads $1-u$. Then simplify: write $\left(-\frac{x}{2}\right)^n$ as $\frac{(-1)^nx^n}{2^n}$ and merge the leading $\frac32$ into the denominator.
+
+Fully simplified means one fraction per term, with no stacked powers like $\left(-\frac{x}{2}\right)^{n}$ left in the answer. Put the sign as $(-1)^n$, the numerator as $x^n$, and every constant in the denominator as one power of $2$. Then check $n=0$ against $f(0)$.`,
+      // src: buddy Q4b
+      try: { q: R`Fully simplified Maclaurin series of $\dfrac{3}{2+x}$?`,
+        choices: [
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{3(-1)^{n}x^{n}}{2^{n+1}}$`, ok: true, why: R`$\frac{3}{2}\cdot\frac{1}{1-(-x/2)}$: coefficient $\frac32\cdot\frac{(-1)^n}{2^n}=\frac{3(-1)^n}{2^{n+1}}$. First term $\frac32$.` },
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{3(-1)^{n}x^{n}}{2^{n}}$`, why: R`Missed the extra factor $\frac12$ from pulling out the $2$. At $n=0$ this gives $3$, but $f(0)=\frac32$.` },
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{3x^{n}}{2^{n+1}}$`, why: R`Lost $(-1)^n$. The ratio is $-\frac x2$, so terms alternate.` },
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{3(-1)^{n}x^{n}}{2^{n-1}}$`, why: R`Wrong power of $2$: the denominator is $2\cdot2^n=2^{n+1}$, not $2^{n-1}$.` },
+        ] },
+    },
+    {
+      h: 'Try: x to a power times e to the ax',
+      body: R`Substitute into $e^x$ first. Then multiply by $x^k$. The new exponent is $x^{n+k}$. It is not $x^{kn}$.
+
+Keep the pieces apart. The $e^{-x/5}$ part gives $\frac{(-1)^nx^n}{5^nn!}$. The outside $x^2$ only changes the exponent of $x$. It never touches $5^n$ or $n!$. Test $n=0$: the first term of $x^2e^{-x/5}$ is $x^2$.`,
+      // src: buddy Q4c (wrote x^{2n}); HW3 P2
+      try: { q: R`Maclaurin series of $x^{2}e^{-x/5}$?`,
+        choices: [
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{n+2}}{5^{n}\,n!}$`, ok: true, why: R`$e^{-x/5}=\sum\frac{(-x/5)^n}{n!}$. Times $x^2$ adds $2$ to the exponent: $x^{n+2}$. First term $x^2$.` },
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{2n}}{5^{n}\,n!}$`, why: R`The buddy's error: multiplied the exponent instead of adding. $x^2\cdot x^n=x^{n+2}$.` },
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{x^{n+2}}{5^{n}\,n!}$`, why: R`Lost $(-1)^n$ from the minus sign in $-\frac x5$.` },
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{n+2}}{5\,n!}$`, why: R`Dropped the power on the $5$: $\left(\frac x5\right)^n$ has $5^n$ in the denominator.` },
+        ] },
+    },
+    {
+      h: 'Try: the integral of sin x over x',
+      body: R`$\frac{\sin x}{x}$ is one fraction. You cannot split it into $\int\sin x\,dx$ and $\int\frac{1}{x}dx$. Divide the sine series by $x$ term by term. Then integrate each power.
+
+There is no antiderivative of $\frac{\sin x}{x}$ in closed form. A series gives one. Divide the whole sine series by $x$: each power drops by one. Then integrate each power: it rises by one and divides by the new exponent. Finish with $+C$ for an indefinite integral.`,
+      // src: buddy Q4d; HW3 P3, P13
+      try: { q: R`$\displaystyle\int\frac{\sin x}{x}\,dx=$ ?`,
+        choices: [
+          { t: R`$C+\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{2n+1}}{(2n+1)(2n+1)!}$`, ok: true, why: R`$\frac{\sin x}{x}=\sum\frac{(-1)^nx^{2n}}{(2n+1)!}$. Integrating $x^{2n}$ gives $\frac{x^{2n+1}}{2n+1}$. First terms $x-\frac{x^3}{18}$.` },
+          { t: R`$C+\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{2n+1}}{(2n+1)!}$`, why: R`That is $\sin x$. You forgot to integrate after dividing by $x$.` },
+          { t: R`$C+\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{2n+2}}{(2n+2)(2n+1)!}$`, why: R`You integrated $\sin x$ alone (exponent $2n+1$ rises to $2n+2$). Divide by $x$ first.` },
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{2n+1}}{(2n+1)(2n+1)!}$`, why: R`Right terms but no $+C$. An indefinite integral needs it.` },
+        ] },
+    },
+    {
+      h: 'Try: sine of x to the 4',
+      body: R`Substitute, then check the first term.
+
+Substitute $u=x^4$ into the sine series. The factorial stays $(2n+1)!$ because it came from the sine series index. Only the power of $x$ changes. Check $n=0$: $\sin(x^4)\approx x^4$ for small $x$, so the first term is $x^4$.`,
+      // src: HW3 P1
+      try: { q: R`Maclaurin series of $\sin(x^{4})$?`,
+        choices: [
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{8n+4}}{(2n+1)!}$`, ok: true, why: R`$(x^4)^{2n+1}=x^{8n+4}$. First term $x^4$.` },
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{2n+5}}{(2n+1)!}$`, why: R`Added $4$ to the exponent. A power of a power multiplies: $4(2n+1)=8n+4$.` },
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{8n+4}}{(8n+4)!}$`, why: R`The factorial belongs to the sine series index: $(2n+1)!$. Substitution changes powers, not denominators.` },
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{4n+4}}{(2n+1)!}$`, why: R`$(x^4)^{2n+1}$ is $x^{8n+4}$. Multiply $4\cdot(2n+1)$; do not use $2$ in place of $4$.` },
+        ] },
+    },
+    {
+      h: 'Try: integral of e to the minus t cubed',
+      body: R`Write $e^{-t^3}=\sum\frac{(-1)^nt^{3n}}{n!}$. Integrate $t^{3n}$ from $0$ to $x$.
+
+First write the series of the integrand: substitute $u=-t^3$ into $e^u$. Then integrate each power of $t$ from $0$ to $x$. The lower limit $0$ kills the constant of integration. The new denominator is the new exponent. Check the first term: $\int_0^x1\,dt=x$.`,
+      // src: HW3 P12
+      try: { q: R`$\displaystyle\int_0^{x}e^{-t^{3}}\,dt=$ ?`,
+        choices: [
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{3n+1}}{(3n+1)\,n!}$`, ok: true, why: R`$\int_0^x t^{3n}dt=\frac{x^{3n+1}}{3n+1}$. First terms $x-\frac{x^4}{4}+\frac{x^7}{14}$.` },
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{3n+1}}{(3n+1)!}$`, why: R`Merged $(3n+1)$ and $n!$ into one factorial. They multiply, they are not a single factorial.` },
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{3n}}{n!}$`, why: R`That is $e^{-x^3}$. You did not integrate.` },
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{3n+1}}{3\,n!}$`, why: R`The integration denominator is the new exponent $3n+1$, not $3$.` },
+        ] },
+    },
+    {
+      h: 'Try: 1/(1+4x) and ln(1-3x) with their radii',
+      body: R`The inside of the geometric series is $u$. The condition $|u|<1$ gives the radius. For $u=-4x$: $|4x|<1$ gives $R=\frac14$.
+
+For $\frac{1}{1+4x}$ put $u=-4x$ into $\frac{1}{1-u}$: the series is $\sum(-4)^nx^n$ with $R=\frac14$. For $\ln(1-3x)$ put $u=-3x$ into $\ln(1+u)$. The radius rule is the same: solve $|u|<1$ for $x$. This is the step most often skipped.`,
+      // src: HW3 P4, P5
+      try: { q: R`Maclaurin series of $\ln(1-3x)$ and its radius?`,
+        choices: [
+          { t: R`$-\displaystyle\sum_{n=1}^{\infty}\frac{3^{n}x^{n}}{n}$, $R=\frac13$`, ok: true, why: R`Put $u=-3x$ in $\ln(1+u)=\sum(-1)^{n+1}\frac{u^n}{n}$: $(-1)^{n+1}(-3)^n=-3^n$. Need $|3x|<1$.` },
+          { t: R`$-\displaystyle\sum_{n=1}^{\infty}\frac{3^{n}x^{n}}{n}$, $R=3$`, why: R`Series right. $|3x|<1$ gives $|x|<\frac13$, not $3$.` },
+          { t: R`$\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^{n+1}3^{n}x^{n}}{n}$, $R=\frac13$`, why: R`Kept the $(-1)^{n+1}$ and forgot that $(-3)^n$ also has a sign. They combine to $-1$ for every $n$.` },
+          { t: R`$-\displaystyle\sum_{n=1}^{\infty}\frac{3^{n}x^{n}}{n}$, $R=1$`, why: R`Copied the radius of $\ln(1+x)$. Substituting $u=-3x$ rescales it.` },
+        ] },
+    },
+    {
+      h: 'Try: derive 1/(1-x)^2 from derivatives and check the endpoints',
+      body: R`Buddy Q6 says: derive from derivatives, no credit for a memorised series. Take $f=(1-x)^{-2}$. Then $f'=2(1-x)^{-3}$, $f''=6(1-x)^{-4}$, $f'''=24(1-x)^{-5}$. At $0$: $1,2,6,24$, which is $(n+1)!$. Divide by $n!$ to get coefficient $n+1$. The series is $\sum(n+1)x^n$. The ratio test gives $|x|<1$. Then test $x=\pm1$ separately.`,
+      // src: buddy Q6 (lost points: no endpoint tests)
+      try: { q: R`At $x=\pm1$ the series is $\sum(n+1)(\pm1)^n$. What is the interval of convergence?`,
+        choices: [
+          { t: R`$(-1,1)$`, ok: true, why: R`Terms $(n+1)(\pm1)^n$ do not go to $0$, so the divergence test kills both endpoints.` },
+          { t: R`$[-1,1]$`, why: R`Both endpoints diverge. $|(n+1)(\pm1)^n|=n+1\to\infty$.` },
+          { t: R`$(-1,1]$`, why: R`That belongs to $\ln(1+x)$. At $x=1$ here the sum is $1+2+3+\cdots$, which diverges.` },
+          { t: R`$[-1,1)$`, why: R`At $x=-1$ the terms are $(-1)^n(n+1)$. They do not shrink to $0$, so it diverges. The alternating test needs terms going to $0$.` },
+        ] },
+    },
   ],
   recipe: [
     R`Read the wording. "From scratch" or "do not use known series" means derivatives. Otherwise, use a known series.`,
@@ -164,6 +325,56 @@ Use this when no algebra trick turns your function into one of the six, but its 
       ],
       note: R`Show the derivative table: most of the 16 points are for the work, not the final sigma.`,
     },
+    {
+      // src: buddy Q6
+      q: R`(Buddy Exam 3 Q6.) Find the Taylor series of $\dfrac{1}{(1-x)^{2}}$ centred at $0$ from derivatives, and give its interval of convergence.`,
+      steps: [
+        R`Differentiate: $f=(1-x)^{-2}$, $f'=2(1-x)^{-3}$, $f''=6(1-x)^{-4}$, $f'''=24(1-x)^{-5}$.`,
+        R`At $0$: $f(0)=1$, $f'(0)=2$, $f''(0)=6$, $f'''(0)=24$. As factorials: $1!,2!,3!,4!$. So $f^{(n)}(0)=(n+1)!$.`,
+        R`Divide by $n!$: $\dfrac{(n+1)!}{n!}=n+1$. Series: $\displaystyle\sum_{n=0}^{\infty}(n+1)x^{n}=1+2x+3x^{2}+\cdots$`,
+        R`Ratio test: $\left|\dfrac{(n+2)x^{n+1}}{(n+1)x^{n}}\right|\to|x|$. Converges for $|x|<1$.`,
+        R`$x=1$: $\sum(n+1)$ diverges, terms go to $\infty$. $x=-1$: $\sum(-1)^n(n+1)$ diverges, terms do not go to $0$.`,
+        R`Interval: $(-1,1)$.`,
+      ],
+      ask: [{ at: 5, q: R`Before testing $x=\pm1$: what does the ratio test say about the endpoints?`, choices: [
+        { t: 'Nothing: it fails at $|x|=1$, so test each endpoint on its own.', ok: true, why: R`The ratio test is inconclusive when the limit is $1$. Check $x=1$ and $x=-1$ separately.` },
+        { t: 'Both endpoints converge.', why: R`The ratio test gives no verdict at $|x|=1$. Convergence must be shown another way.` },
+        { t: 'Both endpoints diverge.', why: R`True here, but the ratio test did not show it. You need the divergence test on each endpoint (the buddy skipped this).` },
+      ] }],
+      note: R`The buddy lost points for writing $-1<x<1$ with no endpoint tests.`,
+    },
+    {
+      // src: buddy Q4c; HW3 P2
+      q: R`(Buddy Exam 3 Q4c.) Find the Maclaurin series of $5x^{2}e^{-x/5}$.`,
+      steps: [
+        R`Start from $e^{u}=\displaystyle\sum_{n=0}^{\infty}\frac{u^{n}}{n!}$ with $u=-\frac x5$: $\displaystyle\sum\frac{(-1)^{n}x^{n}}{5^{n}n!}$.`,
+        R`Multiply by $5x^{2}$: the coefficient is $5$ and the exponent is $n+2$ (add, not multiply).`,
+        R`Merge the $5$: $\dfrac{5}{5^{n}}=\dfrac{1}{5^{n-1}}$. Series: $\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{n+2}}{5^{n-1}\,n!}$.`,
+        R`Check: $n=0$ gives $5x^{2}$; $n=1$ gives $-x^{3}$. Compare $5x^2(1-\frac x5)=5x^2-x^3$. Good.`,
+      ],
+      ask: [{ at: 2, q: R`What is the exponent of $x$ after multiplying $x^{n}$ by $x^{2}$?`, choices: [
+        { t: R`$n+2$`, ok: true, why: R`Multiplying powers of the same base adds exponents.` },
+        { t: R`$2n$`, why: R`The buddy's slip. $x^{2n}$ is $(x^2)^n$, not $x^2\cdot x^n$.` },
+        { t: R`$n^{2}$`, why: R`Squaring the exponent has no rule behind it. Add the exponents.` },
+      ] }],
+      note: R`Always test $n=0$ and $n=1$ against the first terms you expect.`,
+    },
+    {
+      // src: HW3 P5
+      q: R`(HW3 P5.) Find the Maclaurin series of $\ln(1-3x)$ and its radius.`,
+      steps: [
+        R`Start from $\ln(1+u)=\displaystyle\sum_{n=1}^{\infty}(-1)^{n+1}\frac{u^{n}}{n}$.`,
+        R`Put $u=-3x$: $(-3x)^{n}=(-1)^{n}3^{n}x^{n}$.`,
+        R`Signs: $(-1)^{n+1}(-1)^{n}=(-1)^{2n+1}=-1$. Series: $-\displaystyle\sum_{n=1}^{\infty}\frac{3^{n}x^{n}}{n}=-3x-\frac{9x^{2}}{2}-\cdots$`,
+        R`Radius: $|u|<1$ becomes $|3x|<1$, so $R=\frac13$.`,
+      ],
+      ask: [{ at: 3, q: R`What is $(-1)^{n+1}\cdot(-1)^{n}$?`, choices: [
+        { t: '$-1$', ok: true, why: R`The exponents add to $2n+1$, which is odd, so the sign is $-1$ for every $n$.` },
+        { t: '$+1$', why: R`That would need an even total exponent. $2n+1$ is always odd.` },
+        { t: R`$(-1)^{n}$`, why: R`The two signs do not leave one alternating factor. They cancel into a fixed $-1$.` },
+      ] }],
+      note: R`Check $n=1$: $-3x$. The derivative at $0$ of $\ln(1-3x)$ is $-3$. Matches.`,
+    },
   ],
   exam: [
     R`Complete the table of Maclaurin series: write each series in sigma notation and give its interval of convergence. (Exam 3 Q1, 18 pts, six rows)`,
@@ -179,6 +390,29 @@ Use this when no algebra trick turns your function into one of the six, but its 
     R`Forgetting to divide by $n!$: the coefficient is $\frac{f^{(n)}(c)}{n!}$, not $f^{(n)}(c)$.`,
     R`Using $\frac{1}{1-x}$ directly on $\frac{1}{2+x}$. Factor out the $2$ first, and the radius becomes $2$.`,
     R`Writing the wrong endpoints in the Q1 table. $(-1,1)$, $(-1,1]$ and $[-1,1]$ are three different answers.`,
+  ],
+  // src: buddy Q1 (full Maclaurin table); intervals checked with sympy
+  cards: [
+    { f: R`$\dfrac{1}{1-x}=$ ? (sigma form)`, b: R`$\displaystyle\sum_{n=0}^{\infty}x^{n}$` },
+    { f: R`$e^{x}=$ ? (sigma form)`, b: R`$\displaystyle\sum_{n=0}^{\infty}\frac{x^{n}}{n!}$` },
+    { f: R`$\sin x=$ ? (sigma form)`, b: R`$\displaystyle\sum_{n=0}^{\infty}(-1)^{n}\frac{x^{2n+1}}{(2n+1)!}$` },
+    { f: R`$\cos x=$ ? (sigma form)`, b: R`$\displaystyle\sum_{n=0}^{\infty}(-1)^{n}\frac{x^{2n}}{(2n)!}$` },
+    { f: R`$\ln(1+x)=$ ? (sigma form, start index)`, b: R`$\displaystyle\sum_{n=1}^{\infty}(-1)^{n+1}\frac{x^{n}}{n}$. Starts at $n=1$.` },
+    { f: R`$\arctan x=$ ? (sigma form)`, b: R`$\displaystyle\sum_{n=0}^{\infty}(-1)^{n}\frac{x^{2n+1}}{2n+1}$` },
+    { f: R`First two nonzero terms of $\dfrac{1}{1-x}$`, b: R`$1+x$` },
+    { f: R`First two nonzero terms of $e^{x}$`, b: R`$1+x$` },
+    { f: R`First two nonzero terms of $\sin x$`, b: R`$x-\dfrac{x^{3}}{3!}$` },
+    { f: R`First two nonzero terms of $\cos x$`, b: R`$1-\dfrac{x^{2}}{2!}$` },
+    { f: R`First two nonzero terms of $\ln(1+x)$`, b: R`$x-\dfrac{x^{2}}{2}$. No constant term, since $\ln1=0$.` },
+    { f: R`First two nonzero terms of $\arctan x$`, b: R`$x-\dfrac{x^{3}}{3}$` },
+    { f: R`Interval of convergence of $\dfrac{1}{1-x}$`, b: R`$(-1,1)$. Both endpoints diverge.` },
+    { f: R`Interval of convergence of $e^{x}$`, b: R`$(-\infty,\infty)$` },
+    { f: R`Interval of convergence of $\sin x$`, b: R`$(-\infty,\infty)$` },
+    { f: R`Interval of convergence of $\cos x$`, b: R`$(-\infty,\infty)$` },
+    { f: R`Interval of convergence of $\ln(1+x)$`, b: R`$(-1,1]$. Alternating harmonic at $1$, harmonic at $-1$.` },
+    { f: R`Interval of convergence of $\arctan x$`, b: R`$[-1,1]$. Alternating series test at both ends.` },
+    { f: R`Coefficient of $(x-c)^{n}$ in a Taylor series`, b: R`$\dfrac{f^{(n)}(c)}{n!}$` },
+    { f: R`$f^{(n)}(0)$ from a Maclaurin series with $x^{n}$ coefficient $a_n$`, b: R`$f^{(n)}(0)=n!\,a_n$` },
   ],
   practice: [
     {

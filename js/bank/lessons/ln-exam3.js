@@ -76,6 +76,105 @@ In words: one derivative past the polynomial, its worst case $M$, divided by $(n
 Time plan for the exam: write the whole table first (two minutes, banks 18 points and gives you a reference sheet for the rest). Then do the endpoint-heavy interval questions while you are fresh, because endpoints are where points leak.`,
       check: { q: R`"Using $T_2$ on $(-1,1)$, what is the largest possible error?" Which tool?`, a: R`The Taylor remainder bound: $f'''$, its max $M$ on $(-1,1)$, divided by $3!$, times $1^{3}$.` },
     },
+    // ---- Game plan from the graded Spring 2026 paper (buddy exam, 64/100) ----
+    {
+      h: 'Game plan Q1: the table (20 pts)',
+      // src: buddy Q1
+      body: R`Six rows, three columns each: sigma form with its start index, the first two **nonzero** terms, and the interval. The buddy lost 1 point here, on one cell: $\ln(1+x)$ first two terms written as $1-\frac{x^2}{2}$. There is no constant term, because $\ln 1=0$. The series starts at $n=1$, so the first term is $x$.
+
+What earns the points: sigma form with the right start index, two real terms, and the right brackets (see the checklist cards).`,
+      try: {
+        q: R`First two nonzero terms of the Maclaurin series of $\ln(1+x)$?`,
+        choices: [
+          { t: R`$x-\dfrac{x^{2}}{2}$`, ok: true, why: R`$n=1$ gives $x$ and $n=2$ gives $-\frac{x^2}{2}$. The series has no constant term.` },
+          { t: R`$1-\dfrac{x^{2}}{2}$`, why: R`The buddy's slip, graded $-1$. You started from a constant $1$. $\ln(1+0)=0$, so the first term is $x$.` },
+          { t: R`$x+\dfrac{x^{2}}{2}$`, why: R`Sign slip. The sign is $(-1)^{n+1}$, so the $n=2$ term is negative.` },
+          { t: R`$x-\dfrac{x^{3}}{3}$`, why: R`That is $\arctan x$ (odd powers only). $\ln(1+x)$ uses every power: $x,\ x^2,\ x^3,\dots$` },
+        ],
+      },
+    },
+    {
+      h: 'Game plan Q2: exact sums (16 pts, the buddy got 0)',
+      // src: buddy Q2
+      body: R`Every part asks for a **value**. The buddy found the series right, then ran the Ratio Test on all four parts and boxed the limit ($0$, $0$, $\frac13$, $1$). A ratio limit says where a series converges. It never gives the sum. Score: $0/16$.
+
+What earns the points: name the row, read off $x$, write the function value, and fix the start index. The four parts are $e^{-1}$, $\cos\pi-1$, $-\ln\frac43$ and $4\arctan1=\pi$.`,
+      try: {
+        q: R`Compute $\displaystyle\sum_{n=1}^{\infty}\frac{(-\pi^{2})^{n}}{(2n)!}$.`,
+        choices: [
+          { t: R`$-2$`, ok: true, why: R`This is $\cos x$ at $x=\pi$, since $(-\pi^2)^n=(-1)^n\pi^{2n}$. The row starts at $n=0$ (value $1$), so subtract it: $\cos\pi-1=-2$.` },
+          { t: R`$0$`, why: R`The buddy boxed $0$, the ratio-test limit. That limit is not the sum. Match the row instead.` },
+          { t: R`$-1$`, why: R`That is $\cos\pi$ for the full row. Our sum starts at $n=1$, so the $n=0$ term $1$ is missing: subtract it.` },
+          { t: R`$e^{-\pi^{2}}-1$`, why: R`That is the $e^x$ row at $x=-\pi^2$. This sum has $(2n)!$ in the bottom, not $n!$. That is cosine.` },
+        ],
+      },
+    },
+    {
+      h: 'Game plan Q3: centre, radius, interval (16 pts, buddy 13)',
+      // src: buddy Q3
+      body: R`The series was $\sum_{n=1}^{\infty}\frac{(-1)^n}{n\,2^n}(x+5)^n$. Grader marks: centre $-5$ (+2), radius $2$ (+2), ratio limit $\frac{|x+5|}{2}$ (+2), open interval $(-7,-3)$ (+2), endpoint $x=-3$ with a named test (+3), endpoint $x=-7$ (+1 of 3). The buddy called $x=-7$ convergent "by p-test". It is $\sum\frac1n$, the harmonic series, which diverges. The answer was boxed as $[-7,-3]$, when it should be $(-7,-3]$.
+
+What earns the points: each endpoint needs the plain series you get, a named test, and a verdict. Watch the signs: $(-1)^n(-2)^n=2^n$ cancels the alternation.`,
+      widget: { lab: 'powerint', set: { family: '(x+1)^n/(n·4^n)', x: -5, N: 30 }, caption: R`Centre $-1$, radius $4$. At $x=-5$ the terms alternate and shrink (AST, bracket). At $x=3$ they are $\frac1n$ (harmonic, parenthesis). The buddy's series is the mirror image: the $(-1)^n$ puts the bracket on the right.` },
+      try: {
+        q: R`Interval of convergence of $\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^{n}}{n\,2^{n}}(x+5)^{n}$?`,
+        choices: [
+          { t: R`$(-7,-3]$`, ok: true, why: R`At $x=-3$ the terms are $\frac{(-1)^n}{n}$: AST, converges. At $x=-7$ they are $\frac1n$: harmonic, diverges.` },
+          { t: R`$[-7,-3]$`, why: R`The buddy's boxed answer. At $x=-7$, $(-1)^n(-2)^n=2^n$ cancels, leaving the harmonic series $\sum\frac1n$. That diverges.` },
+          { t: R`$[-7,-3)$`, why: R`Endpoints swapped. $x=-3$ gives $\sum\frac{(-1)^n}{n}$ (converges), and $x=-7$ gives $\sum\frac1n$ (diverges).` },
+          { t: R`$(-7,-3)$`, why: R`You stopped at the open interval. The AST shows that $x=-3$ converges, so it earns a bracket.` },
+        ],
+      },
+    },
+    {
+      h: 'Game plan Q4: build by substitution (16 pts, buddy 11)',
+      // src: buddy Q4
+      body: R`Parts: (a) $2x\sin(x^3)$, (b) $\frac{3}{2+x}$, (c) $5x^2e^{-x/5}$, (d) $\int\frac{\sin x}{x}dx$. Losses: (a) $-\frac12$ (the exponent must read $6n+4$), (b) $-1$ (not simplified: the answer is $\sum\frac{3(-1)^nx^n}{2^{n+1}}$), (c) $-1.5$ (the exponent must combine to $n+2$), (d) $-2$ (split $\frac{\sin x}{x}$ as a difference).
+
+What earns the points: substitute, multiply the outside factor, **combine exponents**, and pull constants into a fully simplified term.`,
+      try: {
+        q: R`Maclaurin series of $5x^{2}e^{-x/5}$?`,
+        choices: [
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{5(-1)^{n}x^{n+2}}{5^{n}\,n!}$`, ok: true, why: R`$e^{u}$ with $u=-\frac x5$ gives $\frac{(-1)^nx^n}{5^nn!}$. Multiply by $5x^2$: the exponent is $n+2$.` },
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{5(-1)^{n}x^{2n}}{5^{n}\,n!}$`, why: R`The buddy's slip, $-1.5$. $x^2\cdot x^n=x^{n+2}$. You multiplied the exponents when you should have added them.` },
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{5x^{n+2}}{5^{n}\,n!}$`, why: R`The sign was lost. $\left(-\frac x5\right)^n=\frac{(-1)^nx^n}{5^n}$.` },
+          { t: R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{n+2}}{5^{n}\,n!}$`, why: R`The outside factor $5$ was dropped. Every term gets multiplied by $5$.` },
+        ],
+      },
+    },
+    {
+      h: 'Game plan Q5: Taylor polynomial and error (16 pts, buddy 10)',
+      // src: buddy Q5
+      body: R`(a) $T_1(x)=\ln4+\frac14(x-4)$ was correct. (b) The error at $x=5$: $|R_1|\le\frac{\max|f''|}{2!}(5-4)^2$, with $|f''|=\frac1{c^2}\le\frac1{16}$ for $c\in[4,5]$. That gives $\frac1{32}$, credited. (c) The buddy wrote only the remainder formula and got nothing. On $[2,5]$, $c$ ranges over $[2,5]$ too. So $M=\frac14$ (at $c=2$). The farthest $x$ from the centre is $2$, so $(x-4)^2\le4$. Bound: $\frac{1/4}{2}\cdot4=\frac12$.
+
+What earns the points: $f''$, the interval for $c$, the worst case $M$, the worst $(x-4)^2$, and the final number.`,
+      widget: { lab: 'remainder', set: { fn: 'ln x at 4', n: 1, r: 1 }, caption: R`This is Q5's function: $\ln x$, $n=1$, centre $4$, on $[3,5]$. Here $|f''|=\frac1{x^2}$ is largest at the left end, so $M=\frac19$ and the bound is $\frac{1/9}{2!}\cdot1^2=\frac1{18}$. The bound line always sits above the true error. On the exam's $[2,5]$ the same steps give $M=\frac14$, $|x-4|^2\le4$, bound $\frac12$.` },
+      try: {
+        q: R`Max error of $T_1$ for $\ln x$ centred at $4$, on all of $[2,5]$?`,
+        choices: [
+          { t: R`$\dfrac12$`, ok: true, why: R`$M=\max\frac1{c^2}=\frac14$ at $c=2$. The farthest distance is $|2-4|=2$, so $(x-4)^2\le4$. Then $\frac{1/4}{2!}\cdot4=\frac12$.` },
+          { t: R`$\dfrac1{32}$`, why: R`That is part (b), the single point $x=5$ with $c\in[4,5]$. Part (c) covers $[2,5]$, so both $M$ and the distance get bigger.` },
+          { t: R`$\dfrac18$`, why: R`You used $M=\frac14$ but only the right end, $(5-4)^2=1$. The left end $x=2$ is farther: $(2-4)^2=4$.` },
+          { t: R`$1$`, why: R`You forgot to divide by $2!$. The error of $T_1$ has $\frac{f''(c)}{2!}$.` },
+        ],
+      },
+    },
+    {
+      h: 'Game plan Q6: derive the series from derivatives (16 pts, buddy 11)',
+      // src: buddy Q6
+      body: R`For $f(x)=\frac1{(1-x)^2}$ at $c=0$, you may not just quote a memorised series. List $f^{(n)}(0)$: $f=1,\ f'=2,\ f''=6$ so $f^{(n)}(0)=(n+1)!$. The coefficient is $\frac{(n+1)!}{n!}=n+1$, so $T(x)=\sum(n+1)x^n$. The ratio limit is $|x|$, so $(-1,1)$. The buddy got this far and lost points by skipping the **endpoint tests**. At $x=\pm1$ the terms are $(n+1)(\pm1)^n$. They do not go to $0$, so both endpoints diverge.
+
+What earns the points: derivative list, pattern, simplified term, ratio test with absolute value, and a named test at each endpoint.`,
+      try: {
+        q: R`For $\sum_{n=0}^{\infty}(n+1)x^{n}$, what is the correct endpoint check at $x=1$ and $x=-1$?`,
+        choices: [
+          { t: R`The terms $(n+1)(\pm1)^n$ do not tend to $0$, so both endpoints diverge.`, ok: true, why: R`The nth-term test: if the terms do not go to $0$, the series diverges. The interval is $(-1,1)$.` },
+          { t: R`Skip them: the ratio test already gave $-1<x<1$.`, why: R`The buddy's omission. The ratio test says nothing at the endpoints, because $L=1$ there. Each endpoint needs its own test.` },
+          { t: R`At $x=-1$ it alternates, so the AST says converge.`, why: R`The AST also needs the sizes to shrink to $0$. Here $(n+1)$ grows, so it fails.` },
+          { t: R`The ratio limit is $1$ at the endpoints, so both converge.`, why: R`$L=1$ means the test is inconclusive, not convergent.` },
+        ],
+      },
+    },
   ],
   recipe: [
     'Write the six-series table (first terms, sigma form, interval) at the top of the exam before anything else.',
@@ -129,6 +228,75 @@ Time plan for the exam: write the whole table first (two minutes, banks 18 point
       ],
       note: 'His 11-10 lecture example. Here the worst case sits at the centre only because x^(-8/3) shrinks as x grows; always check which end is worst.',
     },
+    {
+      // src: buddy Q2(c)
+      q: R`Compute $\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^{n}}{n\,3^{n}}$.`,
+      steps: [
+        R`Plain $n$ in the bottom, alternating, starts at $n=1$: that is the $\ln(1+x)$ row, $\sum_{n=1}^{\infty}\frac{(-1)^{n+1}x^n}{n}$.`,
+        R`$\frac1{3^n}=\left(\frac13\right)^n$, so $x=\frac13$.`,
+        R`Compare signs: the row has $(-1)^{n+1}$ and ours has $(-1)^n$. Those differ by one factor of $-1$, so our sum is the negative of the row.`,
+        R`Sum $=-\ln\left(1+\frac13\right)=-\ln\frac43$.`,
+      ],
+      ask: [
+        { at: 3, q: R`The row is $\sum\frac{(-1)^{n+1}x^n}{n}$ and our series has $(-1)^n$. What is the sum?`, choices: [
+          { t: R`$-\ln\dfrac43$`, ok: true, why: R`One sign factor differs, so the sum is $-\ln(1+\frac13)$.` },
+          { t: R`$\ln\dfrac43$`, why: R`That ignores the sign flip between $(-1)^{n+1}$ and $(-1)^n$.` },
+          { t: R`$\ln\dfrac23$`, why: R`You put $x=-\frac13$ into $\ln(1+x)$. But the $(-1)^n$ is already in the series, so $x$ is $+\frac13$.` },
+          { t: R`$\dfrac13$`, why: R`The buddy boxed $\frac13$, the ratio test limit. That limit says nothing about the sum.` },
+        ] },
+      ],
+      note: 'Buddy Q2 scored 0 because the ratio test was used on every part. Match the row instead.',
+    },
+    {
+      // src: buddy Q3
+      q: R`Find the interval of convergence of $\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^{n}}{n\,2^{n}}(x+5)^{n}$.`,
+      steps: [
+        R`Ratio Test: $\dfrac{n}{n+1}\cdot\dfrac{|x+5|}{2}\to\dfrac{|x+5|}{2}$. Need $<1$.`,
+        R`$|x+5|<2$: centre $-5$, radius $2$, open interval $(-7,-3)$.`,
+        R`$x=-3$: $(x+5)^n=2^n$, so the terms are $\frac{(-1)^n}{n}$. Sizes $\frac1n$ decrease to $0$: converges by the AST. Bracket.`,
+        R`$x=-7$: $(x+5)^n=(-2)^n$, and $(-1)^n(-2)^n=2^n$, so the terms are $\frac1n$: harmonic, diverges. Parenthesis.`,
+        R`Interval of convergence: $(-7,-3]$.`,
+      ],
+      ask: [
+        { at: 4, q: R`At $x=-7$, what series do you get?`, choices: [
+          { t: R`$\sum\dfrac1n$, harmonic, diverges`, ok: true, why: R`$(-1)^n(-2)^n=2^n$ cancels the $2^n$ in the bottom.` },
+          { t: R`$\sum\dfrac{(-1)^n}{n}$, converges by the AST`, why: R`That is the $x=-3$ series. At $x=-7$ the two sign factors multiply to $+1$.` },
+          { t: R`$\sum\dfrac1n$, converges by the p-test`, why: R`The buddy's slip. The p-test needs $p>1$, and here $p=1$.` },
+        ] },
+      ],
+      note: 'Buddy Q3: 13/16. The only lost points were the x = -7 endpoint and the boxed interval.',
+    },
+    {
+      // src: buddy Q4(d)
+      q: R`Find a power series for $\displaystyle\int\frac{\sin x}{x}\,dx$.`,
+      steps: [
+        R`Write the sine row: $\sin x=\sum_{n=0}^{\infty}\frac{(-1)^nx^{2n+1}}{(2n+1)!}$.`,
+        R`Divide every term by $x$: $\frac{\sin x}{x}=\sum_{n=0}^{\infty}\frac{(-1)^nx^{2n}}{(2n+1)!}$.`,
+        R`Integrate term by term: $\int x^{2n}dx=\frac{x^{2n+1}}{2n+1}$, so each term gains a factor $\frac1{2n+1}$.`,
+        R`Add the constant: $\displaystyle\int\frac{\sin x}{x}dx=C+\sum_{n=0}^{\infty}\frac{(-1)^nx^{2n+1}}{(2n+1)\,(2n+1)!}$.`,
+      ],
+      ask: [
+        { at: 2, q: R`How do you handle the $\frac1x$?`, choices: [
+          { t: R`Divide each term of the sine series by $x$`, ok: true, why: R`$\frac{x^{2n+1}}{x}=x^{2n}$, which is easy to integrate.` },
+          { t: R`Split into $\int\sin x\,dx-\int\frac1x\,dx$`, why: R`The buddy's slip, $-2$. $\frac{\sin x}{x}$ is a quotient, not a difference.` },
+          { t: R`Integrate the sine series first, then divide by $x$`, why: R`You cannot pull $\frac1x$ outside an integral in $x$.` },
+        ] },
+      ],
+      note: 'Buddy Q4(d): 2 of 4. Divide first, then integrate, then add C.',
+    },
+  ],
+  cards: [
+    // src: buddy graded paper, Q1-Q6 checklists
+    { f: R`Q1 checklist: what earns the table points?`, b: R`Per row: sigma form with start index, first two **nonzero** terms, interval with correct brackets. $\ln(1+x)$ begins $x-\frac{x^2}{2}$.` },
+    { f: R`Q2 checklist: what earns the points?`, b: R`Name the row, read $x$, write the function value, fix the start index. Never the Ratio Test: its limit is not the sum.` },
+    { f: R`Q3 checklist: what earns the IOC points?`, b: R`Centre $+2$, radius $+2$, ratio limit $+2$, open interval $+2$, each endpoint with a named test $+3$, then the right brackets.` },
+    { f: R`Q4 checklist: what earns the points?`, b: R`Substitute, multiply the outside factor, combine exponents (add, never multiply), fully simplify. For $\int\frac{\sin x}{x}$: divide first, then integrate, then $+C$.` },
+    { f: R`Q5 checklist: what earns the points?`, b: R`$T_n$ from derivatives at the centre; $f^{(n+1)}$ and $(n+1)!$; worst $M$ on the interval for $c$; farthest $|x-a|$; the number.` },
+    { f: R`Q6 checklist: what earns the points?`, b: R`Derivative list, pattern, simplified coefficient, ratio test with $|x|$, a named test at each endpoint. A memorised series alone gets no credit.` },
+    { f: R`Does $x=-7$ converge for $\sum\frac{(-1)^n}{n2^n}(x+5)^n$?`, b: R`No. $(-1)^n(-2)^n=2^n$, so the terms are $\frac1n$: harmonic, diverges. Interval $(-7,-3]$.` },
+    { f: R`$\sum_{n=0}^{\infty}(n+1)x^n$ at $x=\pm1$?`, b: R`Both diverge: the terms $(n+1)(\pm1)^n$ do not tend to $0$. Interval $(-1,1)$.` },
+    { f: R`Max error of $T_1$ for $\ln x$ at $4$ on $[2,5]$?`, b: R`$M=\frac14$ (at $c=2$), $(x-4)^2\le4$, bound $\frac{1/4}{2}\cdot4=\frac12$.` },
+    { f: R`Value of $\sum_{n=1}^{\infty}\frac{(-1)^n}{n3^n}$?`, b: R`$-\ln\frac43$ (the $\ln(1+x)$ row at $x=\frac13$, with one sign flipped).` },
   ],
   exam: [
     'Q1: Fill in the table of six Maclaurin series with sigma form and interval of convergence (18 pts).',
@@ -137,6 +305,8 @@ Time plan for the exam: write the whole table first (two minutes, banks 18 point
     R`Q4: Find the Maclaurin series of a substituted function (e.g. $x\cos(x^{3})$).`,
     R`Q6: Taylor polynomial and largest possible error on an interval; also compute $\sum\frac{3^{n}}{n!}$-type sums.`,
     R`Radius questions with factorials on top, like $\sum n!(5x+2)^n$ (radius $0$).`,
+    R`Spring 2026 paper (graded copy): Q1 table 20, Q2 exact sums 16, Q3 centre/radius/IOC 16, Q4 build by substitution 16, Q5 $T_1$ plus remainder 16, Q6 derive series plus IOC 16.`,
+    'Dress rehearsal: take Mock C, a replica of the Spring 2026 Exam 3, under timed conditions. Mark it with the checklist cards.',
   ],
   traps: [
     R`Endpoint intervals: $\frac{1}{1-x}$ is $(-1,1)$, $\ln(1+x)$ is $(-1,1]$, $\arctan x$ is $[-1,1]$. All three differ. Say the reason for each, not just the brackets.`,

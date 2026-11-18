@@ -8,12 +8,23 @@ import { fileURLToPath } from 'node:url';
 import { LESSONS } from '../js/bank/lessons.js';
 import { normalize, ALL_SKILLS } from '../js/bank/index.js';
 import { isCheckable } from '../js/mathcheck.js';
+import { EXPLORERS } from '../js/explore.js';
 
 const DIR = join(dirname(fileURLToPath(import.meta.url)), '../js/bank/lessons');
 const named = process.argv.slice(2);
 const ids = named.length ? named : readdirSync(DIR).filter(f => f.startsWith('ln-')).map(f => f.replace(/\.js$/, ''));
 const errs = [], warns = [];
 const STAGES = ['warmup', 'core', 'exam'];
+const LABS = new Set(EXPLORERS.map(e => e.id));
+// ex3 contract: try / w.ask = 2-5 choices, exactly one ok, every choice has t + why
+const checkMC = (tag, t, E) => {
+  if (!t || !t.q) return E(`${tag}: needs q`);
+  const cs = Array.isArray(t.choices) ? t.choices : [];
+  if (cs.length < 2 || cs.length > 5) E(`${tag}: ${cs.length} choices, need 2-5`);
+  const oks = cs.filter(c => c && c.ok).length;
+  if (oks !== 1) E(`${tag}: ${oks} ok choices, need exactly 1`);
+  cs.forEach((c, j) => { if (!c || !c.t || !c.why) E(`${tag}: choice ${j + 1} needs t and why`); });
+};
 
 const strings = (o, out = []) => {
   if (typeof o === 'string') out.push(o);
@@ -49,6 +60,32 @@ for (const id of ids) {
   if (worked.length < 3) E(`worked: ${worked.length}, need 3+ (easy -> exam level)`);
   worked.forEach((w, i) => { if (!w.q || !Array.isArray(w.steps) || w.steps.length < 4) E(`worked ${i + 1}: needs q and 4+ steps`); });
   if (!Array.isArray(l.traps) || l.traps.length < 3) E('traps: need 3+');
+
+  // ---- interactive fields (ex3 contract, all optional) ----
+  secs.forEach((s, i) => {
+    if (s.widget) {
+      if (!LABS.has(s.widget.lab)) E(`section ${i + 1}: widget lab "${s.widget.lab}" is not an explorer id (${[...LABS].join(', ')})`);
+      if (s.widget.set != null && (typeof s.widget.set !== 'object' || Array.isArray(s.widget.set))) E(`section ${i + 1}: widget.set must be an object`);
+      const ex = EXPLORERS.find(e => e.id === s.widget.lab);
+      if (ex && s.widget.set && typeof s.widget.set === 'object') for (const [k, v] of Object.entries(s.widget.set)) {
+        const c = ex.controls.find(c => c.key === k);
+        if (!c) E(`section ${i + 1}: widget.set key "${k}" is not a control of ${ex.id}`);
+        else if (c.kind === 'pick' && !c.options.includes(v)) E(`section ${i + 1}: widget.set ${k}="${v}" not in options`);
+        else if (c.kind === 'range' && !(v >= c.min && v <= c.max)) E(`section ${i + 1}: widget.set ${k}=${v} outside ${c.min}-${c.max}`);
+      }
+    }
+    if (s.try) checkMC(`section ${i + 1} try`, s.try, E);
+  });
+  worked.forEach((w, i) => (w.ask || []).forEach((a, j) => {
+    const n = (w.steps || []).length;
+    if (!a) return E(`worked ${i + 1} ask ${j + 1}: empty`);
+    if (!Number.isInteger(a.at) || a.at < 2 || a.at > n) E(`worked ${i + 1} ask ${j + 1}: at=${a.at} must be 2-${n} (step 1 is always shown)`);
+    checkMC(`worked ${i + 1} ask ${j + 1}`, a, E);
+  }));
+  if (l.cards != null) {
+    if (!Array.isArray(l.cards)) E('cards: must be an array');
+    else l.cards.forEach((c, i) => { if (!c || !c.f || !c.b) E(`card ${i + 1}: needs f and b`); });
+  }
   if (/\b(clearly|obviously|trivially|it is easy to see)\b/i.test(strings([l.plain, secs, worked]).join(' '))) E('banned word (clearly/obviously/trivially/"it is easy to see")');
   const sent = (l.plain || '').replace(/\$[^$]*\$/g, 'X').split(/[.!?]+\s/).filter(s => s.trim());
   const avg = sent.reduce((n, s) => n + s.trim().split(/\s+/).length, 0) / Math.max(1, sent.length);

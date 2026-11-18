@@ -89,7 +89,7 @@ class Frame {
       for (const t of ys) if (Math.abs(t) > 1e-9) g.push(txt(x0 - 6, this.Y(t) + 3.5, num(t), { size: 10, anchor: 'end', fill: C.text }));
     }
     if (o.xlabel) g.push(txt(this.w - this.pad.r, y0 - 8, o.xlabel, { size: 12, anchor: 'end', fill: C.text, style: 'italic' }));
-    if (o.ylabel) g.push(txt(x0 + 8, this.pad.t + 10, o.ylabel, { size: 12, fill: C.text, style: 'italic' }));
+    if (o.ylabel) g.push(txt(x0 + 6, this.pad.t - 8, o.ylabel, { size: 12, fill: C.text, style: 'italic' }));
     this.parts.unshift(g.join(''));
     return this;
   }
@@ -154,7 +154,7 @@ function ticks(lo, hi, target = 8) {
   const mag = 10 ** Math.floor(Math.log10(raw));
   const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => s >= raw) || mag * 10;
   const out = [];
-  for (let t = Math.ceil(lo / step) * step; t <= hi + 1e-9; t += step) out.push(Math.round(t / step) * step);
+  for (let t = Math.ceil(lo / step) * step; t <= hi + step * 1e-6; t += step) out.push(Math.round(t / step) * step);
   return out;
 }
 
@@ -347,11 +347,19 @@ export function interval(o) {
     F.add(`<line x1="${F.X(c - R)}" y1="${F.Y(0)}" x2="${F.X(c + R)}" y2="${F.Y(0)}" stroke="${C.hi}" stroke-width="7" opacity=".32"/>`);
     F.dot(c, 0, { r: 3.4, fill: C.warn });
     F.add(txt(F.X(c), F.Y(0) - 30, `center ${num(c)}`, { anchor: 'middle', size: 10.5, fill: C.warn }));
-    F.dot(c - R, 0, { r: 5.2, color: C.hi, open: !o.leftClosed, fill: o.leftClosed ? C.hi : undefined });
-    F.dot(c + R, 0, { r: 5.2, color: C.hi, open: !o.rightClosed, fill: o.rightClosed ? C.hi : undefined });
+    // verdict: closed endpoint converges (green), open endpoint diverges (coral)
+    const ec = closed => (o.verdictColors && !closed ? C.bad : C.hi);
+    F.dot(c - R, 0, { r: 5.2, color: ec(o.leftClosed), open: !o.leftClosed, fill: o.leftClosed ? C.hi : undefined });
+    F.dot(c + R, 0, { r: 5.2, color: ec(o.rightClosed), open: !o.rightClosed, fill: o.rightClosed ? C.hi : undefined });
     F.add(txt(F.X(c - R), F.Y(0) - 14, o.leftLabel || num(c - R), { anchor: 'middle', size: 11, fill: C.hi }));
     F.add(txt(F.X(c + R), F.Y(0) - 14, o.rightLabel || num(c + R), { anchor: 'middle', size: 11, fill: C.hi }));
     F.add(txt(F.w / 2, F.h - 10, o.note || `R = ${num(R)}`, { anchor: 'middle', size: 11.5, fill: C.text }));
+  }
+  if (o.mark) {   // evaluation point x, clamped into view; short tick + label below the axis so it never overlaps the endpoint labels above
+    const mx = Math.max(F.xmin, Math.min(F.xmax, o.mark.x));
+    const col = o.mark.color || C.g, X = F.X(mx);
+    F.add(`<line x1="${X}" y1="${F.Y(0) - 8}" x2="${X}" y2="${F.Y(0) + 8}" stroke="${col}" stroke-width="2.4"/>`);
+    F.add(txt(X, F.Y(0) + 36, o.mark.label || `x = ${num(o.mark.x)}`, { anchor: X < F.pad.l + 40 ? 'start' : X > F.w - F.pad.r - 40 ? 'end' : 'middle', size: 11, fill: col }));
   }
   return { svg: F.out(), cap: o.cap };
 }

@@ -316,6 +316,13 @@ export function markLessonDrilled(id) {
   if (!l.read) l.read = Date.now();
   S.lessons[id] = l; save();
 }
+/** Per-lesson "Show all worked steps" toggle. Lives on the lesson record, so old saves need no migration. */
+export function showAllSteps(id) { return !!(S.lessons && S.lessons[id] && S.lessons[id].allSteps); }
+export function setShowAllSteps(id, on) {
+  const l = S.lessons[id] || { read: 0, drilled: 0 };
+  l.allSteps = !!on;
+  S.lessons[id] = l; save();
+}
 /** Fixed-ladder progress: ladder[itemId] = 1 (latest answer right) | 0 (wrong). */
 export function recordLadder(id, itemId, right) {
   const l = S.lessons[id] || { read: 0, drilled: 0 };

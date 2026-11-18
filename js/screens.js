@@ -2,7 +2,7 @@
 // screens.js — progress analytics, reference sheet, interactive
 // labs, study plan, printable worksheets, help & search overlays.
 // ---------------------------------------------------------------
-import { h, tex, clear, pct, plural, toast, rand } from './util.js';
+import { h, tex, texOnly, clear, pct, plural, toast, rand } from './util.js';
 import { UNITS, UNIT_BY_KEY, liveSkillsOf, LIVE_SKILLS, topicOfSkill, unitOfSkill, candidates, materialize } from './bank/index.js';
 import { FORMULAS, searchFormulas } from './bank/formulas.js';
 import { PRIMERS } from './bank/primers.js';
@@ -431,10 +431,28 @@ export function labs() {
 
 export function lab(id) {
   const ex = explorerById(id);
-  const wrap = h('div.wrap');
   if (!ex) return h('div.wrap.narrow', h('div.empty', h('p', 'No such lab.')));
+  const wrap = h('div.wrap');
+  wrap.appendChild(h('section.hero',
+    h('div.eyebrow', `Lab · ${UNIT_BY_KEY[ex.unit] ? UNIT_BY_KEY[ex.unit].name : ''}`),
+    h('h1', ex.name),
+    h('p', { html: tex(ex.blurb) }),
+  ));
+  wrap.appendChild(labPanel(id));
+  wrap.appendChild(h('div.row', { style: { marginTop: '18px' } },
+    h('button.btn.sm', { onclick: () => nav({ v: 'drill', mode: 'unit', scope: ex.unit }) }, `Drill ${UNIT_BY_KEY[ex.unit].name} →`),
+    h('button.btn.sm.ghost', { onclick: () => nav({ v: 'labs' }) }, 'All labs'),
+  ));
+  return wrap;
+}
 
+/** One lab renderer: controls + svg + readout + note for explorer `explorerId`.
+ *  `set` overrides control defaults (unknown keys ignored). Unknown id -> null. */
+export function labPanel(explorerId, set) {
+  const ex = explorerById(explorerId);
+  if (!ex) return null;
   const st = initialState(ex);
+  for (const c of ex.controls) if (set && c.key in set) st[c.key] = set[c.key];
   const figure = h('div.vizwrap');
   const readout = h('div.readout');
   const note = h('div.vizcap');
@@ -444,16 +462,10 @@ export function lab(id) {
     clear(figure).appendChild(h('div', { html: out.svg }));
     clear(readout);
     out.readout.forEach(r => readout.appendChild(h('div.rocell' + (r.hot ? '.hot' : '') + (r.wide ? '.wide' : ''),
-      h('div.rol', r.label), h('div.rov', String(r.value)))));
+      h('div.rol', r.tex ? { html: texOnly(r.tex) } : r.label), String(r.value).includes('$') ? h('div.rov', { html: tex(String(r.value)) }) : h('div.rov', String(r.value)))));
     clear(note);
     if (out.note) note.appendChild(h('div', { html: tex(out.note) }));
   }
-
-  wrap.appendChild(h('section.hero',
-    h('div.eyebrow', `Lab · ${UNIT_BY_KEY[ex.unit] ? UNIT_BY_KEY[ex.unit].name : ''}`),
-    h('h1', ex.name),
-    h('p', { html: tex(ex.blurb) }),
-  ));
 
   const controls = h('div.controls');
   for (const c of ex.controls) {
@@ -461,18 +473,20 @@ export function lab(id) {
       const row = h('div.ctl',
         h('label', c.label),
         h('div.pillset', { style: { margin: 0 } }, ...c.options.map(o => {
-          const b = h('button.pill' + (st[c.key] === o ? '.on' : ''), { onclick: () => {
+          const t = c.tex && c.tex[o];   // optional KaTeX display label; the option VALUE (o) is unchanged
+          const b = h('button.pill' + (st[c.key] === o ? '.on' : ''), { title: o, ...(t ? { html: texOnly(t) } : {}), onclick: () => {
             st[c.key] = o;
-            row.querySelectorAll('.pill').forEach(p => p.classList.toggle('on', p.textContent === o));
+            row.querySelectorAll('.pill').forEach(p => p.classList.toggle('on', p._o === o));
             draw();
-          } }, o);
+          } }, ...(t ? [] : [o]));
+          b._o = o;
           return b;
         })));
       controls.appendChild(row);
     } else {
-      const out = h('span.ctlval', String(c.value));
+      const out = h('span.ctlval', String(st[c.key]));
       const inp = h('input.slider', {
-        type: 'range', min: c.min, max: c.max, step: c.step, value: c.value,
+        type: 'range', min: c.min, max: c.max, step: c.step, value: st[c.key],
       });
       inp.addEventListener('input', () => {
         st[c.key] = parseFloat(inp.value);
@@ -482,17 +496,12 @@ export function lab(id) {
       controls.appendChild(h('div.ctl', h('label', c.label, out), inp));
     }
   }
-
-  wrap.appendChild(h('div.labgrid',
+  const grid = h('div.labgrid',
     h('div.labfig', figure, note),
     h('div.labside', controls, readout),
-  ));
-  wrap.appendChild(h('div.row', { style: { marginTop: '18px' } },
-    h('button.btn.sm', { onclick: () => nav({ v: 'drill', mode: 'unit', scope: ex.unit }) }, `Drill ${UNIT_BY_KEY[ex.unit].name} →`),
-    h('button.btn.sm.ghost', { onclick: () => nav({ v: 'labs' }) }, 'All labs'),
-  ));
+  );
   draw();
-  return wrap;
+  return grid;
 }
 
 // ===============================================================
@@ -795,23 +804,17 @@ export function lesson(id) {
     h('div.eyebrow', 'Why this matters'),
     h('div', { html: tex(l.why) })));
 
-  for (const s of l.sections || []) {
-    wrap.appendChild(h('div.panel',
-      h('div.eyebrow', s.h),
-      ...String(s.body).split('\n\n').map(par => h('div.lpara', { html: tex(par) }))));
-  }
+  if ((l.cards || []).length) wrap.appendChild(cardsPanel(l.cards));
 
-  for (const w of l.worked || []) {
-    const box = h('div.panel.worked');
-    box.appendChild(h('div.eyebrow', 'Worked example'));
-    box.appendChild(h('div.lq', { html: tex(w.q) }));
-    const steps = h('div.steps');
-    w.steps.forEach((s, i) => steps.appendChild(h('div.step' + (i === w.steps.length - 1 ? '.key' : ''),
-      h('span.num', String(i + 1)), h('span.txt', { html: tex(s) }))));
-    box.appendChild(steps);
-    if (w.note) box.appendChild(h('div.lnote', { html: tex(w.note) }));
+  for (const s of l.sections || []) {
+    const box = h('div.panel',
+      h('div.eyebrow', s.h),
+      ...String(s.body).split('\n\n').map(par => h('div.lpara', { html: tex(par) })));
+    sectionExtras(box, s);
     wrap.appendChild(box);
   }
+
+  workedList(l).forEach(b => wrap.appendChild(b));
 
   if (Array.isArray(l.exam) && l.exam.length) {
     wrap.appendChild(h('div.panel',
@@ -851,6 +854,125 @@ export function lesson(id) {
   return wrap;
 }
 
+// ---- interactive lesson pieces (contract ex3 sections 1-4) ----
+
+// Keys typed on a lesson widget stay there: main.js idle shortcuts (1-6, n, l, t...) must not fire.
+const ownKeys = el => { el.addEventListener('keydown', e => { if (e.key !== 'Escape') e.stopPropagation(); }); return el; };
+
+// section.widget (inline lab) + section.try (answer-it-yourself check)
+function sectionExtras(box, sec) {
+  if (sec.widget) {
+    const lp = labPanel(sec.widget.lab, sec.widget.set);   // unknown lab id: nothing (check-lessons flags it)
+    if (lp) box.appendChild(h('div.lwidget', lp, sec.widget.caption ? h('div.lnote', { html: tex(sec.widget.caption) }) : null));
+  }
+  if (sec.try && (sec.try.choices || []).length) box.appendChild(tryWidget(sec.try));
+}
+
+/** Multiple-choice check with instant diagnosis. Right answer, or 2 misses, shows the key's why
+ *  and calls onDone. Choices shuffled per render. */
+function tryWidget(t, onDone) {
+  const box = ownKeys(h('div.ltry'));
+  box.appendChild(h('div.lq', { html: '<b>Try it:</b> ' + tex(t.q) }));
+  const list = h('div.choices');
+  const why = h('div.ltrywhy');
+  let misses = 0, done = false;
+  const finish = () => {
+    done = true;
+    list.querySelectorAll('.choice').forEach(b => { b.classList.add('locked'); if (b._c.ok) b.classList.add('correct'); });
+    const key = t.choices.find(c => c.ok);
+    if (key && key.why) why.appendChild(h('div.lans.ok', { html: '<b>Why:</b> ' + tex(key.why) }));
+    if (onDone) onDone();
+  };
+  rand.shuffle(t.choices).forEach(c => {
+    const b = h('button.choice', { type: 'button', onclick: () => {
+      if (done || b.classList.contains('wrong')) return;
+      clear(why);
+      if (c.ok) { b.classList.add('correct'); return finish(); }
+      b.classList.add('wrong');
+      why.appendChild(h('div.lans.no', { html: tex(c.why || 'Not this one.') }));
+      if (++misses >= 2) finish();
+      else why.appendChild(h('div.dim', 'Try again.'));
+    } }, h('span.body', { html: tex(c.t) }));
+    b._c = c;
+    list.appendChild(b);
+  });
+  box.append(list, why);
+  return box;
+}
+
+/** Worked examples as step-through. All steps are rendered (KaTeX) up front; only visibility toggles.
+ *  A per-lesson "Show all worked steps" toggle (persisted) restores the fully-open view. */
+function workedList(l) {
+  const ws = l.worked || [];
+  if (!ws.length) return [];
+  const boxes = ws.map(workedBox);
+  const sync = () => boxes.forEach(b => b._reset(store.showAllSteps(l.id)));
+  const cb = h('input', { type: 'checkbox', checked: store.showAllSteps(l.id) });
+  cb.addEventListener('change', () => { store.setShowAllSteps(l.id, cb.checked); sync(); });
+  sync();
+  return [h('label.lstepmode', cb, ' Show all worked steps'), ...boxes];
+}
+
+function workedBox(w) {
+  const asks = {};
+  for (const a of w.ask || []) asks[a.at] = a;
+  const steps = w.steps.map((t, i) => h('div.step' + (i === w.steps.length - 1 ? '.key' : ''),
+    h('span.num', String(i + 1)), h('span.txt', { html: tex(t) })));
+  const note = w.note ? h('div.lnote', { html: tex(w.note) }) : null;
+  const ctl = ownKeys(h('div.lreveal'));
+  const box = h('div.panel.worked', h('div.eyebrow', 'Worked example'), h('div.lq', { html: tex(w.q) }),
+    h('div.steps', ...steps), note, ctl);
+  let shown = 1;
+  const answered = new Set();
+  const paint = () => {
+    steps.forEach((s, i) => { s.hidden = i >= shown; });
+    if (note) note.hidden = shown < steps.length;
+    clear(ctl);
+    if (shown >= steps.length) return;
+    const a = asks[shown + 1];
+    const gate = a && !answered.has(a.at);
+    const pass = () => { answered.add(a.at); nextB.disabled = false; };
+    const nextB = h('button.btn.sm.primary', { type: 'button', disabled: gate, onclick: () => { shown++; paint(); } }, 'Next step');
+    ctl.appendChild(h('div.dim.lthink', 'What comes next? Think, then reveal.'));
+    if (gate) ctl.appendChild(tryWidget(a, pass));
+    ctl.appendChild(h('div.row', nextB,
+      gate ? h('button.btn.sm.ghost', { type: 'button', onclick: () => { answered.add(a.at); shown++; paint(); } }, 'Skip') : null,
+      h('button.btn.sm.ghost', { type: 'button', onclick: () => { shown = steps.length; paint(); } }, 'Show all')));
+  };
+  box._reset = all => { shown = all ? steps.length : 1; paint(); };
+  return box;
+}
+
+/** l.cards: one flip card at a time; Got it drops it, Again re-queues it at the end. Session state only. */
+function cardsPanel(cards) {
+  const panel = ownKeys(h('div.panel.lcards', h('div.eyebrow', 'Memorize')));
+  const body = h('div');
+  panel.appendChild(body);
+  let queue = cards.map((_, i) => i), flipped = false;
+  const paint = () => {
+    clear(body);
+    if (!queue.length) {
+      body.appendChild(h('div.row', h('span.dim', 'All cards done.'),
+        h('button.btn.sm', { type: 'button', onclick: () => { queue = cards.map((_, i) => i); flipped = false; paint(); } }, 'Again from the start')));
+      return;
+    }
+    const c = cards[queue[0]];
+    const card = h('div.lcard' + (flipped ? '.flipped' : ''), { tabindex: 0, role: 'button', 'aria-label': 'Flip card' },
+      h('div.lcardface', { html: tex(flipped ? c.b : c.f) }),
+      h('div.dimmer.lcardhint', flipped ? 'back' : 'tap or space to flip'));
+    const flip = () => { flipped = !flipped; paint(); body.querySelector('.lcard').focus(); };
+    card.addEventListener('click', flip);
+    card.addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); } });
+    const step = again => { const i = queue.shift(); if (again) queue.push(i); flipped = false; paint(); };
+    body.append(card, h('div.row',
+      h('span.dimmer', `${queue.length} left`), h('span.flex'),
+      h('button.btn.sm', { type: 'button', onclick: () => step(true) }, 'Again'),
+      h('button.btn.sm.primary', { type: 'button', onclick: () => step(false) }, 'Got it')));
+  };
+  paint();
+  return panel;
+}
+
 // A rewritten lesson (has .plain): ground-up teaching page + fixed practice ladder.
 function rewrittenBody(l, wrap, skills, prev, next) {
   const para = t => String(t).split('\n\n').map(x => h('div.lpara', { html: tex(x) }));
@@ -860,10 +982,12 @@ function rewrittenBody(l, wrap, skills, prev, next) {
   frag.appendChild(panel('The big idea in plain English', ...para(l.plain)));
   if ((l.prereq || []).length) {
     frag.appendChild(panel('Words you need first',
-      ...l.prereq.map(p => h('div.lterm', h('b', { html: tex(p.term) }), h('span', { html: ' — ' + tex(p.means) })))));
+          ...l.prereq.map(p => h('div.lterm', h('b', { html: tex(p.term) }), h('span', { html: ' — ' + tex(p.means) })))));
   }
+  if ((l.cards || []).length) frag.appendChild(cardsPanel(l.cards));
   (l.sections || []).forEach((sec, i) => {
     const box = panel(`${i + 1}. ${sec.h}`, ...para(sec.body));
+    sectionExtras(box, sec);
     if (sec.check) {
       box.appendChild(h('details.lcheck',
         h('summary', { html: '<b>Check yourself:</b> ' + tex(sec.check.q) }),
@@ -876,13 +1000,7 @@ function rewrittenBody(l, wrap, skills, prev, next) {
       h('div.eyebrow', 'The method step by step'),
       h('div.steps', ...l.recipe.map((t, i) => h('div.step', h('span.num', String(i + 1)), h('span.txt', { html: tex(t) }))))));
   }
-  for (const w of l.worked || []) {
-    const steps = h('div.steps');
-    w.steps.forEach((t, i) => steps.appendChild(h('div.step' + (i === w.steps.length - 1 ? '.key' : ''),
-      h('span.num', String(i + 1)), h('span.txt', { html: tex(t) }))));
-    frag.appendChild(h('div.panel.worked', h('div.eyebrow', 'Worked example'), h('div.lq', { html: tex(w.q) }), steps,
-      w.note ? h('div.lnote', { html: tex(w.note) }) : null));
-  }
+  workedList(l).forEach(b => frag.appendChild(b));
   if ((l.exam || []).length) frag.appendChild(panel('Exam patterns', ...l.exam.map(t => h('div.lpara', { html: tex(t) }))));
   if ((l.traps || []).length) {
     frag.appendChild(h('div.panel.diag', h('div.eyebrow', 'Where people lose the marks'),

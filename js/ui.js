@@ -96,9 +96,9 @@ export function home() {
   if (na && na.kind === 'exam') {
     const ls = lessonsForExam(na.id);
     const firstOpen = ls.find(l => !store.lessonDone(l.id));
-    const mockRefs = pre => { const r = []; for (let i = 1; i < 30 && materialize({ id: `${pre}-q${i}` }); i++) r.push({ id: `${pre}-q${i}` }); return r; };
-    const mocks = (na.id === 3 ? ['m3a', 'm3b'] : na.id === 0 ? ['mfa', 'mfb'] : [])
-      .map((p, i) => ({ label: `Mock ${'AB'[i]}`, refs: mockRefs(p) })).filter(m => m.refs.length);
+    const mockRefs = pre => { const r = []; for (let i = 1; i < 30; i++) { const ids = ['', ...'abcdefgh'].map(s => `${pre}-q${i}${s}`).filter(id => materialize({ id })); if (!ids.length) break; ids.forEach(id => r.push({ id })); } return r; };
+    const mocks = (na.id === 3 ? ['m3a', 'm3b', 'm3c', 'm3d'] : na.id === 0 ? ['mfa', 'mfb'] : [])
+      .map((p, i) => ({ label: p === 'm3c' ? "Mock C · Spring '26 replica" : `Mock ${'ABCD'[i]}`, refs: mockRefs(p) })).filter(m => m.refs.length);
     wrap.appendChild(h('div.panel.examhub',
       h('div.eyebrow', `${na.name} hub · ${plural(na.days, 'day')} left`),
       h('div.hubles', ...ls.map(l => h('span.planchip' + (store.lessonDone(l.id) ? '.done' : ''),

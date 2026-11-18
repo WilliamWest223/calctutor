@@ -225,6 +225,51 @@ try {
     return (await $('.lladder.miss').count()) === 1 && (await $('.lfinish').getByText(/Redo missed only/).count()) === 1 || 'miss not shown';
   });
 
+  await check('interactive lesson: widget svg, step-through + ask, try diagnosis, flip card', async () => {
+    // temp lesson injected in memory only (no bank file): clone of a rewritten lesson + the ex3 fields
+    await page.evaluate(() => {
+      const L = window.__calctutor.lessons.LESSONS, base = L.find(l => l.plain);
+      const t = { ...base, id: 'ln-smoke-ix', sections: base.sections.map(x => ({ ...x })),
+        worked: [{ q: 'Smoke $x^2$', steps: ['one $a$', 'two $b$', 'three $c$'], ask: [{ at: 2, q: 'Next?', choices: [{ t: 'yes', ok: true, why: 'right $1$' }, { t: 'no', why: 'wrong $0$' }] }] }],
+        cards: [{ f: 'front $e^x$', b: 'back $\\sum x^n/n!$' }, { f: 'f2', b: 'b2' }] };
+      t.sections[0].widget = { lab: 'taylor', set: {} };
+      t.sections[0].try = { q: 'Pick', choices: [{ t: 'A', ok: true, why: 'because A' }, { t: 'B', why: 'B is the slip' }, { t: 'C', why: 'C is the slip' }] };
+      L.push(t);
+      window.__calctutor.store.setShowAllSteps('ln-smoke-ix', false);
+      window.__calctutor.nav({ v: 'lesson', id: 'ln-smoke-ix' });
+    });
+    try {
+      if (!(await $('.lwidget svg').count())) return 'no widget svg';
+      const w = $('.panel.worked').first();
+      if ((await w.locator('.step:visible').count()) !== 1) return 'worked not collapsed to step 1';
+      if (!(await w.getByText('What comes next?').count())) return 'no think prompt';
+      if (!(await w.locator('.lreveal button', { hasText: 'Next step' }).isDisabled())) return 'ask (at 2) did not gate step 2';
+      await w.locator('.ltry .choice', { hasText: 'yes' }).click();
+      await w.getByText('Next step').click();
+      if ((await w.locator('.step:visible').count()) !== 2) return 'Next step did not reveal step 2';
+      await w.getByText('Next step').click();
+      if ((await w.locator('.step:visible').count()) !== 3) return 'step 3 not revealed after ask';
+      if (!(await w.locator('.step .katex').count())) return 'no KaTeX in revealed steps';
+      const tr = $('.lwidget').locator('..').locator('.ltry');
+      await tr.locator('.choice', { hasText: 'B' }).click();
+      if (!/B is the slip/.test(await tr.innerText())) return 'wrong try: no diagnosis';
+      await page.keyboard.press('1');                                  // idle shortcut must not fire from a try
+      if (await page.evaluate(() => !!window.__calctutor.session && !!window.__calctutor.problem)) return 'shortcut fired from try';
+      await tr.locator('.choice', { hasText: 'A' }).click();
+      if (!/because A/.test(await tr.innerText())) return 'right try: no why';
+      const c = $('.lcard');
+      if (!/front/.test(await c.innerText())) return 'card front missing';
+      await c.click();
+      if (!/back/.test(await $('.lcard').innerText())) return 'card did not flip';
+      await $('.lcards').getByText('Again').click();
+      if (!/1 left|2 left/.test(await $('.lcards').innerText())) return 'no count left';
+      const kerr = await page.evaluate(() => document.querySelectorAll('.katex-error').length);
+      return kerr === 0 || `${kerr} katex-error`;
+    } finally {
+      await page.evaluate(() => { const L = window.__calctutor.lessons.LESSONS; const i = L.findIndex(l => l.id === 'ln-smoke-ix'); if (i >= 0) L.splice(i, 1); });
+    }
+  });
+
   await check('selftest.js passes', async () => {
     await home();
     const r = await page.evaluate(async () => { const m = await import('/tools/selftest.js'); return m.default.results.filter(x => x.result !== 'pass'); });

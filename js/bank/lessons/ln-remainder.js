@@ -39,6 +39,15 @@ export default {
         R`The subtle part: $\xi$ is NOT $c$. Putting $\xi=c$ gives the next term, which is a different number. He tests exactly this.`,
       ),
       check: { q: R`Write $R_4(x)$ for a function about centre $c$.`, a: R`$R_4(x)=\dfrac{f^{(5)}(\xi)}{5!}(x-c)^{5}$, $\xi$ between $x$ and $c$.` },
+      widget: { lab: 'remainder', set: { fn: 'e^x', n: 2, r: 1 }, caption: R`Here $f=e^{x}$, $n=2$, $r=1$. The bound at the edge is $\frac{e}{6}\approx0.453$. The true error stays under it. Raise $n$ and both shrink.` },
+      // src: HW2 P1, buddy Q5(b)
+      try: { q: R`Spot the right remainder: $T_3(x)$ for $\ln x$ centred at $4$.`,
+        choices: [
+          { t: R`$\dfrac{f^{(4)}(\xi)}{4!}(x-4)^{4}$`, ok: true, why: R`Degree $n=3$, so derivative, factorial and power all use $n+1=4$. The centre is $4$ and $\xi$ is the unknown point.` },
+          { t: R`$\dfrac{f^{(3)}(\xi)}{3!}(x-4)^{3}$`, why: R`That uses $n$, not $n+1$. It is the degree-3 term, which $T_3$ already holds.` },
+          { t: R`$\dfrac{f^{(4)}(\xi)}{4!}(x-\xi)^{4}$`, why: R`The power uses the centre $4$, not $\xi$. The buddy wrote $(x-c)$ here, mixing up the centre with the mystery point.` },
+          { t: R`$\dfrac{f^{(4)}(4)}{4!}(x-4)^{4}$`, why: R`The derivative sits at $\xi$, not at the centre. At the centre it is just the next series term.` },
+        ] },
     },
     {
       h: 'You bound it, you never evaluate it',
@@ -58,6 +67,15 @@ export default {
         R`Do not plug in the centre unless the centre really is where the derivative is largest. For $e^{x}$ on $(-1,1)$, using $\xi=0$ gives $1$, which is too small and not a valid bound.`,
       ),
       check: { q: R`$f(x)=e^{x}$, $T_2$, interval $[0,2]$. What is $M$ for $|f'''(\xi)|$?`, a: R`$f'''=e^{x}$ increases, so $M=e^{2}$.` },
+      widget: { lab: 'remainder', set: { fn: '1/x at 1', n: 1, r: 0.5 }, caption: R`$f=\frac1x$, $n=1$: $f''=\frac{2}{x^{3}}$ falls as $x$ grows. Read the readout: $M=16$ sits at the LEFT end $x=0.5$, and the bound at the edge is $2$.` },
+      // src: buddy Q5(b)
+      try: { q: R`$T_1$ for $\ln x$ about $4$ on $[4,5]$. What is the smallest valid $M$ for $|f''(\xi)|$?`,
+        choices: [
+          { t: R`$\dfrac1{16}$`, ok: true, why: R`$|f''|=\frac1{\xi^{2}}$ falls as $\xi$ grows, so the max is at the left end $\xi=4$: $\frac1{16}$.` },
+          { t: R`$\dfrac1{25}$`, why: R`You used the right end. $\frac1{\xi^{2}}$ decreases, so the largest value is at the LEFT end.` },
+          { t: R`$\dfrac14$`, why: R`That is $f'(4)$, the wrong derivative. Degree $1$ needs $f''$.` },
+          { t: R`$\dfrac1{32}$`, why: R`That is $M$ already divided by $2!$. Keep $M$ alone; divide by the factorial in the next step.` },
+        ] },
     },
     {
       h: 'Finding the biggest distance |x - c|',
@@ -68,6 +86,14 @@ export default {
         R`Note: $M$ and the distance are two separate maximums. They may happen at different ends. That is fine; the bound is still safe.`,
       ),
       check: { q: R`Centre $c=2$, interval $[0,3]$. Largest $|x-c|$?`, a: R`Distances are $2$ and $1$, so $2$.` },
+      // src: buddy Q5(c)
+      try: { q: R`Centre $c=4$, interval $[2,5]$, $n=1$. What is the largest $|x-4|^{n+1}$?`,
+        choices: [
+          { t: R`$4$`, ok: true, why: R`Distance to $2$ is $2$, to $5$ is $1$. Largest is $2$, and $2^{2}=4$.` },
+          { t: R`$1$`, why: R`You took the near end $5$. The bound needs the farthest end, $2$.` },
+          { t: R`$9$`, why: R`$3$ is the interval length $5-2$. Measure from the centre, not across.` },
+          { t: R`$2$`, why: R`That is the distance, but the power $n+1=2$ is still missing: $2^{2}=4$.` },
+        ] },
     },
     {
       h: 'Reverse question: how many terms?',
@@ -78,6 +104,23 @@ export default {
         R`Why test numbers? Factorials have no easy inverse, so a table is the honest way. He does the same in lecture, listing $n$ next to "max error". Use $(n+1)!$, not $n!$, or you end one degree off.`,
       ),
       check: { q: R`Bound is $\frac{1}{(n+1)!}$. Smallest $n$ with bound $<\frac1{100}$?`, a: R`$4!=24$ fails, $5!=120$ works, so $n+1=5$, $n=4$.` },
+      widget: { lab: 'remainder', set: { fn: 'ln(1+x)', n: 3, r: 0.5 }, caption: R`$\ln(1+x)$, $n=3$, $r=0.5$: $f^{(4)}=-\frac{6}{(1+x)^4}$, biggest at the left end $x=-0.5$ where $M=96$. Bound at the edge: $\frac{96}{4!}\cdot\frac1{16}=\frac14$.` },
+      // src: HW2 P7 style, no calculator (e<3)
+      try: { q: R`$e^{x}$ about $0$ on $[0,1]$. Use $M=3$ (since $e<3$). Smallest degree $n$ with error bound under $\frac1{1000}$?`,
+        choices: [
+          { t: R`$n=6$`, ok: true, why: R`Need $\frac{3}{(n+1)!}<\frac1{1000}$, so $(n+1)!>3000$. $6!=720$ fails, $7!=5040$ works, so $n+1=7$, $n=6$.` },
+          { t: R`$n=7$`, why: R`You solved $n!>3000$ and stopped at $7!$. The bound has $(n+1)!$, so $n+1=7$.` },
+          { t: R`$n=5$`, why: R`$n=5$ gives $\frac{3}{6!}=\frac{3}{720}$, about $0.004$, still too big.` },
+          { t: R`$5040$`, why: R`$5040$ is the factorial, not $n$. Read off $n+1=7$.` },
+        ] },
+      // src: HW2 P8 (answered 6, marked wrong: terms vs degree)
+      try: { q: R`The degree needed for $e^{0.2}$ is $n=6$ (bound about $3\times10^{-9}$; $n=5$ gives about $1.09\times10^{-7}$, too big for $10^{-7}$). How many TERMS of the series is that?`,
+        choices: [
+          { t: R`$7$`, ok: true, why: R`Degree $6$ uses powers $x^0$ through $x^6$: $7$ terms.` },
+          { t: R`$6$`, why: R`That is the degree. Counting the constant term, degree $6$ has $7$ terms. This is the HW2 P8 miss.` },
+          { t: R`$5$`, why: R`$n=5$ still has bound near $1.09\times10^{-7}$, above $10^{-7}$, and it is also a degree, not a count.` },
+          { t: R`$8$`, why: R`That counts $x^{7}$, which is the remainder's power, not part of $T_6$.` },
+        ] },
     },
     {
       h: 'Does the series equal the function?',
@@ -88,6 +131,14 @@ export default {
       ),
       check: { q: R`True or false: if the Taylor series of $f$ converges at $x$, it equals $f(x)$.`, a: R`False. You also need $R_n(x)\to0$; $e^{-1/x}$ is a counterexample.` },
     },
+  ],
+  cards: [
+    { f: R`$R_n(x)=$ ?`, b: R`$\dfrac{f^{(n+1)}(\xi)}{(n+1)!}(x-c)^{n+1}$, $\xi$ between $x$ and $c$` },
+    { f: R`Bound form: $|R_n(x)|\le$ ?`, b: R`$\dfrac{M}{(n+1)!}|x-c|^{n+1}$, with $M\ge|f^{(n+1)}|$ on the interval` },
+    { f: R`$M$ for $e^{x}$ on an interval?`, b: R`$e^{\text{right end}}$ (increasing, so biggest at the right)` },
+    { f: R`$M$ for $\sin x$ or $\cos x$?`, b: R`$M=1$ for every derivative` },
+    { f: R`$M$ for a negative power like $x^{-k}$?`, b: R`Decreasing, so biggest at the LEFT end of the interval` },
+    { f: R`Degree $n$ versus number of terms?`, b: R`Terms $=n+1$ (powers $x^0$ to $x^n$)` },
   ],
   recipe: [
     R`Identify $f$, centre $c$, degree $n$, and the interval (or the single $x$).`,
@@ -129,7 +180,41 @@ export default {
         R`Bound the distance: $|x|<1$, so $|x|^{3}<1$.`,
         R`Multiply: $|R_2(x)|<\dfrac{e\cdot1}{3!}=\dfrac{e}{6}\approx0.453$.`,
       ],
+      // src: buddy Q5 M step, applied to e^x (Spring 2025 Exam 3 Q7)
+      ask: [
+        { at: 3, q: R`$f'''(\xi)=e^{\xi}$ with $|\xi|<1$. Which $M$ is the smallest valid one?`, choices: [
+          { t: R`$e$`, ok: true, why: R`$e^{\xi}$ increases, so the max is at the right end $\xi=1$.` },
+          { t: R`$1$`, why: R`That is $e^{0}$, the centre. $\xi$ can be near $1$, where $e^{\xi}$ is larger.` },
+          { t: R`$\frac1e$`, why: R`That is the left end. An increasing function peaks at the RIGHT end.` },
+        ] },
+      ],
       note: R`Using $\xi=0$ would give $\frac16$: smaller, and not a valid bound.`,
+    },
+    {
+      // src: buddy Q5 (Spring 2026 Exam 3)
+      q: R`(Buddy Exam 3, Q5.) (a) Find $T_1(x)$ for $\ln x$ at $c=4$. (b) Max error approximating $\ln5$ by $T_1(5)$. (c) Max error approximating $\ln x$ by $T_1$ on $[2,5]$.`,
+      steps: [
+        R`(a) $f(4)=\ln4$, $f'(4)=\frac14$. So $T_1(x)=\ln4+\frac14(x-4)$.`,
+        R`Remainder: $n=1$, so use $f''$, $2!$ and $(x-4)^2$. $f''(x)=-\frac1{x^{2}}$, so $|R_1|=\frac{1}{2\xi^{2}}|x-4|^{2}$.`,
+        R`(b) $\xi$ lies in $[4,5]$. $\frac1{\xi^{2}}$ decreases, so the max is at the left end: $M=\frac1{16}$.`,
+        R`Distance: $|5-4|^{2}=1$. Error $\le\frac{1/16}{2}\cdot1=\frac1{32}$.`,
+        R`(c) Now $\xi$ lies in $[2,5]$. The max of $\frac1{\xi^{2}}$ is at the left end $\xi=2$: $M=\frac14$.`,
+        R`Distances from $4$: to $2$ it is $2$, to $5$ it is $1$. Largest $|x-4|^{2}=4$.`,
+        R`Error $\le\frac{1/4}{2}\cdot4=\frac12$.`,
+      ],
+      ask: [
+        { at: 3, q: R`Part (b): what is $M$ for $|f''|=\frac1{\xi^{2}}$ with $\xi\in[4,5]$?`, choices: [
+          { t: R`$\frac1{16}$`, ok: true, why: R`Decreasing, so the left end $\xi=4$ gives $\frac1{16}$.` },
+          { t: R`$\frac1{25}$`, why: R`That is the right end. A decreasing function peaks at the left.` },
+          { t: R`$\frac14$`, why: R`That is $f'(4)$, not $|f''|$.` },
+        ] },
+        { at: 5, q: R`Part (c): the interval is now $[2,5]$. What is $M$?`, choices: [
+          { t: R`$\frac14$`, ok: true, why: R`Left end $\xi=2$: $\frac1{4}$.` },
+          { t: R`$\frac1{16}$`, why: R`That was part (b)'s interval. Here the left end moved to $2$, so $M$ grows.` },
+          { t: R`$\frac1{25}$`, why: R`Right end of a decreasing function gives the smallest value, not the largest.` },
+        ] },
+      ],
+      note: R`Check: the true error at $\ln5$ is $|\ln5-\ln4-\frac14|\approx0.0269$, under $\frac1{32}=0.03125$.`,
     },
   ],
   exam: [

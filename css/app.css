@@ -582,7 +582,7 @@ td.num{font-family:var(--font-m); text-align:right}
 }
 .rocell.hot{border-color:color-mix(in srgb,var(--coral) 45%,var(--line))}
 .rocell.wide{flex-direction:column; align-items:flex-start; gap:3px}
-.rol{font-family:var(--font-m); font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3)}
+.rol{font-family:var(--font-m); font-size:12px; color:var(--ink-3)}
 .rov{font-family:var(--font-m); font-size:14px; color:var(--ink)}
 .rocell.hot .rov{color:var(--coral)}
 
@@ -945,3 +945,29 @@ td.num{font-family:var(--font-m); text-align:right}
 .lladder.miss .ltick { color: var(--coral); opacity: 1; }
 @media (max-width: 600px) { .lrewrite .lpara, .lrewrite .lterm { font-size: 15px; } .lfinish .row { flex-direction: column; align-items: stretch; } }
 .eyebrow .katex{text-transform:none}
+
+/* ---- interactive lessons (ex3): inline lab, try-it, step-through, flip cards ---- */
+.lwidget{scroll-margin-top:72px; margin-top:14px; padding-top:12px; border-top:1px solid var(--line)}
+.ltry{margin-top:14px; padding:12px; border:1px dashed var(--line); border-radius:var(--r)}
+.ltry .choices{margin-top:10px}
+.ltry .choice.locked{cursor:default}
+.ltrywhy .lans{margin-top:10px; padding:8px 10px; border-radius:var(--r-sm)}
+.ltrywhy .lans.ok{background:var(--ok-bg); border-left:3px solid var(--lime)}
+.ltrywhy .lans.no{background:var(--err-bg); border-left:3px solid var(--coral)}
+.ltrywhy .dim{margin-top:6px; font-size:13px}
+.lstepmode{display:flex; align-items:center; gap:6px; font-size:13px; color:var(--ink-2); margin:6px 0; cursor:pointer}
+.lreveal{margin-top:14px}
+.lreveal .lthink{font-size:13px; margin-bottom:8px}
+.lreveal .row{gap:8px; flex-wrap:wrap}
+.step[hidden],.lnote[hidden]{display:none}
+.lcard{min-height:110px; display:grid; place-items:center; gap:6px; padding:18px; margin:6px 0 12px;
+  border:1px solid var(--line); border-radius:var(--r-lg); background:var(--panel-2); cursor:pointer;
+  text-align:center; font-size:17px; transition:.14s var(--ease)}
+.lcard:hover{border-color:var(--ink-3)}
+.lcard:focus-visible{outline:2px solid var(--cyan); outline-offset:2px}
+.lcard.flipped{border-color:var(--violet); background:var(--raise)}
+.lcardhint{font-size:11px}
+.lcards .row{gap:8px}
+
+/* phone: keep svg text >= 9px rendered (viewBox is 700 wide) by letting the plot scroll sideways */
+@media (max-width: 600px) { .vizwrap{overflow-x:auto} .vizwrap svg{width:auto; min-width:640px} }

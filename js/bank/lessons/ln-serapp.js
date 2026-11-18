@@ -22,6 +22,64 @@ In short: know the six series cold. Then every problem here is "swap the functio
   ],
   sections: [
     {
+      h: 'Compute means find the sum',
+      body: R`On the exam, "Compute each of the following" over a series means one thing: find the number the series adds up to. It does not mean test for convergence. A student ran the ratio test on all four parts of this question and got 0 of 16. The series were identified correctly. The ratio-test limit is just not the sum.
+
+The ratio test only tells you the series converges. It never tells you what it converges to. To get the sum, match the series to a row of the Maclaurin table and read off $x$.
+
+Try the first part from that exam. The series is $1-\frac{1}{1!}+\frac{1}{2!}-\frac{1}{3!}+\frac{1}{4!}-\cdots$.`,
+      // src: buddy Q2a
+      try: { q: R`Compute $1-\dfrac{1}{1!}+\dfrac{1}{2!}-\dfrac{1}{3!}+\dfrac{1}{4!}-\cdots$.`,
+        choices: [
+          { t: R`$\dfrac{1}{e}$`, ok: true, why: R`The terms are $\frac{(-1)^{n}}{n!}=\frac{(-1)^{n}1^{n}}{n!}$, which is $e^{x}$ at $x=-1$. So the sum is $e^{-1}=\frac1e$.` },
+          { t: R`$0$`, why: R`$0$ is the ratio-test limit, which only says the series converges. The question asks for the sum, so match the $e^{x}$ row with $x=-1$.` },
+          { t: R`$e$`, why: R`$e$ is $e^{x}$ at $x=1$, where every term is positive. The signs alternate here, so $x=-1$.` },
+          { t: R`$1-e$`, why: R`Nothing is skipped: the series starts with the $n=0$ term $1$, the same as $e^{x}$. No term needs subtracting.` },
+        ] },
+    },
+    {
+      h: 'Same trap when the sum starts at n = 1',
+      body: R`Part (b) of that question was $\displaystyle\sum_{n=1}^{\infty}\frac{(-\pi^{2})^{n}}{(2n)!}$. Split the top: $(-\pi^{2})^{n}=(-1)^{n}\pi^{2n}=(-1)^{n}(\pi)^{2n}$. With $(2n)!$ on the bottom this is the $\cos x$ row at $x=\pi$.
+
+The sum starts at $n=1$, but $\cos x$ starts at $n=0$ with the term $1$. So the sum is $\cos\pi-1$.`,
+      // src: buddy Q2b
+      try: { q: R`Compute $\displaystyle\sum_{n=1}^{\infty}\frac{(-\pi^{2})^{n}}{(2n)!}$.`,
+        choices: [
+          { t: R`$-2$`, ok: true, why: R`$\cos\pi=1+\sum_{n=1}^{\infty}\frac{(-1)^{n}\pi^{2n}}{(2n)!}$, so the sum is $\cos\pi-1=-1-1=-2$.` },
+          { t: R`$-1$`, why: R`$-1$ is $\cos\pi$. The sum starts at $n=1$, so it is missing the $n=0$ term $1$. Subtract it: $-1-1=-2$.` },
+          { t: R`$0$`, why: R`$0$ is the ratio-test limit. It says the series converges, not what it adds up to.` },
+          { t: R`$\cos(\pi^{2})-1$`, why: R`You read $x=\pi^{2}$. But $(-\pi^{2})^{n}=(-1)^{n}\pi^{2n}$ and the $\cos$ row has $x^{2n}$, so $x=\pi$.` },
+        ] },
+    },
+    {
+      h: 'Same trap with a ln series',
+      body: R`Part (c) was $\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^{n}}{n\,3^{n}}$. No factorial and a plain $n$ on the bottom: the $\ln$ row. Write it as $\displaystyle\sum\frac{1}{n}\left(-\frac13\right)^{n}$.
+
+The $\ln(1+x)$ row is $\sum\frac{(-1)^{n+1}x^{n}}{n}$. Its sign pattern is shifted by one from this sum. Compare the first terms. The sum starts $-\frac13+\cdots$. The row at $x=\frac13$ starts $+\frac13-\cdots$. So the sum is the NEGATIVE of $\ln\left(1+\frac13\right)$.`,
+      // src: buddy Q2c
+      try: { q: R`Compute $\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^{n}}{n\,3^{n}}$.`,
+        choices: [
+          { t: R`$-\ln\dfrac{4}{3}$`, ok: true, why: R`$\sum\frac{(-1)^{n}}{n3^{n}}=-\sum\frac{(-1)^{n+1}(1/3)^{n}}{n}=-\ln\left(1+\frac13\right)=-\ln\frac43$. The first term is $-\frac13$, so the answer is negative.` },
+          { t: R`$\ln\dfrac{4}{3}$`, why: R`Sign slip. The series starts with $-\frac13$, so it is negative. $\ln\frac43\approx0.29$ is positive.` },
+          { t: R`$\dfrac{1}{3}$`, why: R`$\frac13$ is the ratio-test limit. It is the value that makes the series converge, not its sum.` },
+          { t: R`$\ln\dfrac{2}{3}$`, why: R`That plugs $x=-\frac13$ into $\ln(1+x)$. But the $\ln(1+x)$ row has $(-1)^{n+1}$, which this sum does not. Compare the first terms.` },
+        ] },
+    },
+    {
+      h: 'Same trap with an arctan series',
+      body: R`Part (d) was $4-\frac43+\frac45-\frac47+\frac49-\cdots$. The bottoms are odd numbers and the signs alternate. That is $\tan^{-1}x$ at $x=1$: $1-\frac13+\frac15-\cdots=\frac{\pi}{4}$. Every term here has an extra factor $4$.
+
+So pull the $4$ out front: $4\left(1-\frac13+\frac15-\frac17+\cdots\right)$. The bracket is $\tan^{-1}x$ at $x=1$, which is inside its interval $[-1,1]$. Do not run the ratio test. It gives the limit $1$, and that is not the sum.`,
+      // src: buddy Q2d
+      try: { q: R`Compute $4-\dfrac{4}{3}+\dfrac{4}{5}-\dfrac{4}{7}+\dfrac{4}{9}-\cdots$.`,
+        choices: [
+          { t: R`$\pi$`, ok: true, why: R`Factor out $4$: $4\left(1-\frac13+\frac15-\cdots\right)=4\tan^{-1}(1)=4\cdot\frac{\pi}{4}=\pi$.` },
+          { t: R`$1$`, why: R`$1$ is the ratio-test limit. It says the test is inconclusive, and it is not the sum.` },
+          { t: R`$\dfrac{\pi}{4}$`, why: R`$\frac{\pi}{4}$ is the sum of $1-\frac13+\frac15-\cdots$. Every term here has an extra factor $4$, so multiply by $4$.` },
+          { t: R`$4$`, why: R`$4$ is only the first term. The later terms are not zero, so they change the total.` },
+        ] },
+    },
+    {
       h: 'The six series you must know',
       body: R`Everything in this lesson starts from this table. Each line says "this function equals this endless sum, for these $x$".
 
@@ -75,6 +133,14 @@ Now sum $\displaystyle\sum\frac{n}{2^{n}}$. Multiply both sides by $x$ to match 
 
 Why it is allowed: inside its interval, a power series can be differentiated term by term, and the result is the derivative of the function.`,
       check: { q: R`Which function has series $\displaystyle\sum_{n=1}^{\infty}nx^{n}$?`, a: R`$\dfrac{x}{(1-x)^{2}}$, for $|x|<1$.` },
+      // src: HW3 P10
+      try: { q: R`Find the function that $-2x+4x^{3}-6x^{5}+8x^{7}-\cdots$ converges to on its interval of convergence.`,
+        choices: [
+          { t: R`$\dfrac{-2x}{(1+x^{2})^{2}}$`, ok: true, why: R`$\frac{1}{1+x^{2}}=1-x^{2}+x^{4}-\cdots$. Differentiate: $-2x+4x^{3}-6x^{5}+\cdots=\frac{d}{dx}\frac{1}{1+x^{2}}=\frac{-2x}{(1+x^{2})^{2}}$.` },
+          { t: R`$\dfrac{2x}{(1+x^{2})^{2}}$`, why: R`Sign slip. The first term is $-2x$, and $\frac{d}{dx}(1+x^{2})^{-1}=-2x(1+x^{2})^{-2}$ carries the minus.` },
+          { t: R`$\dfrac{-2x}{1+x^{2}}$`, why: R`That is $-2x$ times the geometric sum, which gives $-2x+2x^{3}-2x^{5}$. The coefficients here grow ($2,4,6$), so the square must be in the bottom.` },
+          { t: R`$\dfrac{2x}{(1-x^{2})^{2}}$`, why: R`That series has all plus signs: $2x+4x^{3}+6x^{5}+\cdots$. The signs here alternate, so the ratio is $-x^{2}$, giving $1+x^{2}$ on the bottom.` },
+        ] },
     },
     {
       h: 'Limits with series',
@@ -86,6 +152,14 @@ Divide every term by $x^{3}$: $-\frac13+\frac{x^{2}}{5}-\cdots$. As $x\to0$, eve
 
 In words: expand, cancel, divide by the bottom power, and keep only the term with no $x$ left.`,
       check: { q: R`Find $\displaystyle\lim_{x\to0}\frac{1-\cos x}{x^{2}}$.`, a: R`$1-\cos x=\frac{x^{2}}{2}-\frac{x^{4}}{24}+\cdots$, divide by $x^{2}$: the limit is $\frac12$.` },
+      // src: HW3 P18
+      try: { q: R`Use series to find $\displaystyle\lim_{x\to0}\frac{\sin x-\tan^{-1}x}{x^{3}}$.`,
+        choices: [
+          { t: R`$\dfrac{1}{6}$`, ok: true, why: R`$\sin x-\tan^{-1}x=\left(x-\frac{x^{3}}{6}\right)-\left(x-\frac{x^{3}}{3}\right)+\cdots=\frac{x^{3}}{6}+\cdots$. Divide by $x^{3}$: $\frac16$.` },
+          { t: R`$-\dfrac{1}{6}$`, why: R`You took $\tan^{-1}x-\sin x$. The order is $\sin x$ first, so the $x^{3}$ coefficient is $-\frac16+\frac13=+\frac16$.` },
+          { t: R`$-\dfrac{1}{2}$`, why: R`You added the $x^{3}$ coefficients: $-\frac16-\frac13=-\frac12$. The minus in front of $\tan^{-1}x$ flips the sign of its $-\frac13$.` },
+          { t: R`$0$`, why: R`Only the $x$ terms cancel. The $x^{3}$ terms $-\frac{x^{3}}{6}$ and $-\frac{x^{3}}{3}$ do not, and the bottom is $x^{3}$ too.` },
+        ] },
     },
     {
       h: 'Integrals with series, and how big the error is',
@@ -96,6 +170,44 @@ Step 1, substitute: $e^{-x^{2}}=1-x^{2}+\frac{x^{4}}{2}-\frac{x^{6}}{6}+\frac{x^
 Step 3, stop after the terms the question asks for. This number series alternates and its terms shrink to $0$. For such a series, the error from stopping is at most the **first term you left out**. Why: each new term overshoots and then undershoots the true value, so the true value is always trapped within one term of your partial sum.
 
 Example: keep $1-\frac13+\frac1{10}=\frac{23}{30}\approx0.7667$. The first left-out term is $\frac{1}{42}\approx0.0238$, so the error is at most $\frac1{42}$. (True value $\approx0.7468$.)`,
+      widget: { lab: 'altest', set: { ex: '∫₀¹ e^{-x²} dx', N: 3 }, caption: R`At $N=3$ the sum is $\frac{23}{30}$ and the next-term bound is $\frac{1}{42}$. Drag $N$ up and watch the bound shrink.` },
+      // src: HW3 P13c
+      try: { q: R`$\displaystyle\int_{0}^{0.6}\frac{\sin t}{t}\,dt=0.6-\frac{0.6^{3}}{3\cdot3!}+\frac{0.6^{5}}{5\cdot5!}-\frac{0.6^{7}}{7\cdot7!}+\cdots$. The terms are $0.6,\ 0.012,\ 0.0001296,\ 0.0000008,\dots$ How many terms give error below $10^{-4}$?`,
+        choices: [
+          { t: R`$3$`, ok: true, why: R`Keep $0.6,\ 0.012,\ 0.0001296$. The first left-out term is $\approx0.0000008<10^{-4}$, so the error bound holds. With $2$ terms the left-out $0.0001296$ is too big.` },
+          { t: R`$2$`, why: R`With $2$ terms the first left-out term is $0.0001296$, which is bigger than $10^{-4}$. Keep one more.` },
+          { t: R`$4$`, why: R`That is the index of the first small term, which is LEFT OUT. You keep the terms before it, so $3$ terms are enough. $4$ works but is not the minimum.` },
+          { t: R`$1$`, why: R`With $1$ term the first left-out term is $0.012$, far bigger than $10^{-4}$.` },
+        ] },
+    },
+    {
+      h: 'Estimating sin(0.5) with a stopping rule',
+      body: R`The same error rule works on a plain number. $\sin(0.5)=0.5-\frac{0.5^{3}}{6}+\frac{0.5^{5}}{120}-\cdots=0.5-\frac1{48}+\frac1{3840}-\cdots$. The terms alternate and shrink, so the error is at most the first term you drop.
+
+The exam has no calculator, so keep the terms as exact fractions. Powers of $0.5$ are easy: $0.5^{3}=\frac18$ and $0.5^{5}=\frac1{32}$. Use the widget below to see the actual error sit under the next-term bound.`,
+      widget: { lab: 'altest', set: { ex: 'sin(0.5)', N: 2 }, caption: R`At $N=2$ the sum is $\frac{23}{48}\approx0.47917$. The next term is $\frac{1}{3840}\approx0.00026$, and the actual error sits below it.` },
+      // src: altest widget, HW3 P14b style
+      try: { q: R`You approximate $\sin(0.5)$ by $0.5-\frac{1}{48}$. What is the alternating series error bound?`,
+        choices: [
+          { t: R`$\dfrac{1}{3840}$`, ok: true, why: R`The first dropped term is $\frac{0.5^{5}}{5!}=\frac{1}{32\cdot120}=\frac{1}{3840}$.` },
+          { t: R`$\dfrac{1}{48}$`, why: R`$\frac1{48}$ is the last term you KEPT. The bound is the first term you left out.` },
+          { t: R`$\dfrac{1}{384}$`, why: R`$\frac{0.5^{5}}{5!}$ has $32\cdot120=3840$ on the bottom. Check the arithmetic: $0.5^{5}=\frac1{32}$.` },
+        ] },
+    },
+    {
+      h: 'Estimating ln(1.2) with a stopping rule',
+      body: R`$\ln(1.2)=\ln(1+0.2)=0.2-\frac{0.2^{2}}{2}+\frac{0.2^{3}}{3}-\cdots$. This is the $\ln(1+x)$ row at $x=0.2$, inside $(-1,1]$. It alternates with shrinking terms, so the same error rule applies.
+
+Keep the terms as fractions, since there is no calculator. $0.2=\frac15$, so the terms are $\frac15$, $\frac{1}{50}$, $\frac{1}{375}$, and so on. Use the widget below to see how fast the bound shrinks as you add terms.`,
+      widget: { lab: 'altest', set: { ex: 'ln(1.2)', N: 2 }, caption: R`At $N=2$ the sum is $0.18$ and the next term is $\frac{0.2^{3}}{3}=\frac{1}{375}$.` },
+      // src: altest widget
+      try: { q: R`You keep $0.2-\dfrac{0.2^{2}}{2}$ to approximate $\ln(1.2)$. What is the error bound?`,
+        choices: [
+          { t: R`$\dfrac{1}{375}$`, ok: true, why: R`The first dropped term is $\frac{0.2^{3}}{3}=\frac{1/125}{3}=\frac{1}{375}$.` },
+          { t: R`$\dfrac{1}{50}$`, why: R`$\frac{0.2^{2}}{2}=\frac1{50}$ is the last term you kept. The bound is the first one dropped.` },
+          { t: R`$\dfrac{1}{125}$`, why: R`You forgot to divide by $3$. The $\ln$ row has $\frac{x^{n}}{n}$, so the third term is $\frac{0.2^{3}}{3}$.` },
+          { t: R`$\dfrac{1}{2500}$`, why: R`That is the fourth term $\frac{0.2^{4}}{4}$. You skipped the third, which is the first one dropped.` },
+        ] },
     },
   ],
   recipe: [
@@ -135,6 +247,13 @@ Example: keep $1-\frac13+\frac1{10}=\frac{23}{30}\approx0.7667$. The first left-
         R`Our sum has $x^{n}$, not $x^{n-1}$, so multiply both sides by $x$: $\frac{x}{(1-x)^{2}}=\sum nx^{n}$.`,
         R`Plug in $x=\frac12$ (inside $(-1,1)$): $\frac{1/2}{(1-1/2)^{2}}=\frac{1/2}{1/4}=2$.`,
       ],
+      // src: lecture example (extra n on top)
+      ask: [{ at: 3, q: R`Step 2 gave $\sum nx^{n-1}$. Our sum has $x^{n}$. What do you do to both sides?`,
+        choices: [
+          { t: R`Multiply by $x$`, ok: true, why: R`$x\cdot x^{n-1}=x^{n}$, so multiplying both sides by $x$ gives $\sum nx^{n}$.` },
+          { t: R`Divide by $x$`, why: R`That gives $x^{n-2}$, moving the wrong way.` },
+          { t: R`Differentiate again`, why: R`That adds another factor $n-1$ and lowers the power again.` },
+        ] }],
       note: R`Lecture did the same thing by writing $\frac12\sum n\left(\frac12\right)^{n-1}=\frac12\cdot\frac{1}{(1/2)^{2}}$. Same answer, $2$.`,
     },
     {
@@ -145,8 +264,56 @@ Example: keep $1-\frac13+\frac1{10}=\frac{23}{30}\approx0.7667$. The first left-
         R`Add the first four: $1-\frac13+\frac1{10}-\frac1{42}=\frac{26}{35}\approx0.7429$.`,
         R`The series alternates and its terms shrink to $0$, so the error is at most the first left-out term: $\frac1{216}\approx0.0046$.`,
       ],
+      // src: HW3 P14b
+      ask: [{ at: 4, q: R`You kept four terms. Which number bounds the error?`,
+        choices: [
+          { t: R`$\frac{1}{216}$, the fifth term`, ok: true, why: R`The first left-out term is the fifth, $\frac{1}{24\cdot9}=\frac1{216}$.` },
+          { t: R`$\frac{1}{42}$, the fourth term`, why: R`$\frac1{42}$ is the last term you kept. The bound is the first one left out.` },
+          { t: R`$\frac{26}{35}$`, why: R`That is the approximation itself, not the error.` },
+        ] }],
       note: R`True value $\approx0.7468$, which is within $\frac{1}{216}$ of $\frac{26}{35}$.`,
     },
+    {
+      q: R`Use series to evaluate $\displaystyle\lim_{x\to0}\frac{e^{2x}-1-x}{x}$.`,
+      // src: HW3 P17
+      steps: [
+        R`Substitute $u=2x$ into $e^{u}=\sum\frac{u^{n}}{n!}$: $e^{2x}=1+2x+2x^{2}+\frac{4x^{3}}{3}+\cdots$.`,
+        R`Subtract $1+x$: $e^{2x}-1-x=x+2x^{2}+\frac{4x^{3}}{3}+\cdots$. The $1$ cancels. One $x$ survives, because $2x-x=x$.`,
+        R`Divide by $x$: $1+2x+\frac{4x^{2}}{3}+\cdots$.`,
+        R`As $x\to0$ only the constant $1$ is left. The limit is $1$.`,
+      ],
+      ask: [{ at: 2, q: R`What is $e^{2x}-1-x$ up to the $x$ term?`,
+        choices: [
+          { t: R`$x$`, ok: true, why: R`$e^{2x}=1+2x+\cdots$, so subtracting $1+x$ leaves $2x-x=x$.` },
+          { t: R`$2x$`, why: R`You subtracted $1$ but forgot the $-x$. The numerator has $-1-x$.` },
+          { t: R`$0$`, why: R`The $1$ cancels, but $2x-x=x$ remains because $e^{2x}$ has $2x$, not $x$.` },
+        ] }],
+      note: R`Dropping the $2$ in $e^{2x}$ would cancel the $x$ term completely and give the wrong limit $0$.`,
+    },
+    {
+      q: R`Use series to evaluate $\displaystyle\lim_{x\to0}\frac{\cos x-1}{x^{2}}$.`,
+      // src: HW3 P19
+      steps: [
+        R`$\cos x=1-\frac{x^{2}}{2}+\frac{x^{4}}{24}-\cdots$.`,
+        R`Subtract $1$: $\cos x-1=-\frac{x^{2}}{2}+\frac{x^{4}}{24}-\cdots$.`,
+        R`Divide by $x^{2}$: $-\frac12+\frac{x^{2}}{24}-\cdots$.`,
+        R`As $x\to0$ the terms with $x$ in them go to $0$. The limit is $-\frac12$.`,
+      ],
+      note: R`The earlier check had $1-\cos x$, which gives $+\frac12$. Here the order flips the sign.`,
+    },
+  ],
+  cards: [
+    // src: recognition table, buddy Q1/Q2, HW3 P6-10
+    { f: R`$\displaystyle\sum_{n=0}^{\infty}\frac{x^{n}}{n!}$ (any $x$) equals ?`, b: R`$e^{x}$. Plain $n!$ on the bottom.` },
+    { f: R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{2n+1}}{(2n+1)!}$ equals ?`, b: R`$\sin x$. Odd powers, $(2n+1)!$.` },
+    { f: R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{2n}}{(2n)!}$ equals ?`, b: R`$\cos x$. Even powers, $(2n)!$.` },
+    { f: R`$\displaystyle\sum_{n=0}^{\infty}x^{n}$ equals ?`, b: R`$\dfrac{1}{1-x}$, for $|x|<1$.` },
+    { f: R`$\displaystyle\sum_{n=1}^{\infty}\frac{(-1)^{n+1}x^{n}}{n}$ equals ?`, b: R`$\ln(1+x)$, on $(-1,1]$. Starts at $n=1$.` },
+    { f: R`$\displaystyle\sum_{n=0}^{\infty}\frac{(-1)^{n}x^{2n+1}}{2n+1}$ equals ?`, b: R`$\tan^{-1}x$, on $[-1,1]$. At $x=1$ it is $\frac{\pi}{4}$.` },
+    { f: R`$\displaystyle\sum_{n=1}^{\infty}\frac{x^{n}}{n}$ equals ?`, b: R`$-\ln(1-x)$. Use it for $\sum\frac{(-1)^{n}}{n3^{n}}=-\ln\frac43$.` },
+    { f: R`$\displaystyle\sum_{n=1}^{\infty}nx^{n}$ equals ?`, b: R`$\dfrac{x}{(1-x)^{2}}$. Differentiate the geometric series, then multiply by $x$.` },
+    { f: R`A problem says "Compute" over a series. What do you find?`, b: R`The sum: match a table row and read off $x$. Never the ratio-test limit.` },
+    { f: R`Alternating series error after stopping?`, b: R`At most the first term you left out.` },
   ],
   exam: [
     R`Compute the following sum: $\sum\frac{3^{n}}{n!}$ (Exam 3 Q6; also on the final).`,
